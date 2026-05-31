@@ -93,7 +93,7 @@ static var registry = {
 	9: {
 		"title": "Evil Eye",
 		"desc": "Targets a player for 1 turn, then fires. Retreats when approached.",
-		"hp": 2, "atk": 2, "cost": 0, "is_obstacle": false, "is_boss": false,
+		"hp": 2, "atk": 1, "cost": 0, "is_obstacle": false, "is_boss": false,
 		"tex_player": "res://images/monster_eye.png",
 		"tex_bot": "res://images/monster_eye.png",
 		"movement_func": Callable(MovementRules, "get_eye_moves")

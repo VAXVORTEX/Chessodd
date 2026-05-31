@@ -10,8 +10,8 @@ func _ready():
 	stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	
 	var main_node = get_tree().get_first_node_in_group("main")
-	if main_node and main_node.has_method("get_item_texture"):
-		texture = main_node.get_item_texture(item_id)
+	if main_node and main_node.inventory_manager.has_method("get_item_texture"):
+		texture = main_node.inventory_manager.get_item_texture(item_id)
 	else:
 		texture = null
 		

@@ -142,7 +142,7 @@ func event_gain_random_item() -> Dictionary:
 			item_name,
 			ItemManager.get_item_description(item)
 		],
-		"icons": [main_node.get_item_texture(item)]
+		"icons": [main_node.inventory_manager.get_item_texture(item)]
 	}
 
 func event_boss_reveal() -> Dictionary:
@@ -226,7 +226,7 @@ func event_lose_items() -> Dictionary:
 		for i in range(p.artifacts.size()):
 			if p.artifacts[i] != "" and stolen_count < 2:
 				stolen_names.append(ItemManager.get_item_name(p.artifacts[i]))
-				var t = main_node.get_item_texture(p.artifacts[i])
+				var t = main_node.inventory_manager.get_item_texture(p.artifacts[i])
 				if t: stolen_texs.append(t)
 				p.artifacts[i] = ""
 				stolen_count += 1

@@ -285,6 +285,12 @@ static func process_bot_turn(main: Node) -> bool:
 	var best_move = null
 	var best_score = -99999
 
+	var player_king_pos = null
+	for p in main.player_pawns:
+		if is_instance_valid(p) and p.piece_type == main.PieceType.KING:
+			player_king_pos = p.grid_pos
+			break
+
 	for bot in main.bot_pawns:
 		if not is_instance_valid(bot): continue
 		if bot.piece_type == main.PieceType.EVIL_EYE: continue
@@ -296,21 +302,34 @@ static func process_bot_turn(main: Node) -> bool:
 			var score = randf_range(0, 1)
 			
 			var target = main.board.get(m)
+			var is_attack = false
 			if target and target.is_player:
+				is_attack = true
 				var data = PieceData.registry.get(target.piece_type)
-				var val = data.get("target_val", 10) if data else 10
+				var val = data.get("target_val", 20) if data else 20
 				score += val
 			elif target and target.has_meta("is_obstacle") and target.piece_type == main.PieceType.POOP:
 				score += 5
 				
-			var moves_into_threat = player_threats.has(m)
-			if moves_into_threat:
-				score -= 40
-			elif currently_threatened:
-				score += 40
+			# Aggressive tracking of the King
+			if player_king_pos != null:
+				var dist_to_king = abs(m.x - player_king_pos.x) + abs(m.y - player_king_pos.y)
+				score += (15.0 - dist_to_king) * 1.5
 				
-			score += 2.0 - abs(m.x - 2) * 0.5
-			if m.y > bot.grid_pos.y: score += 2
+			var moves_into_threat = player_threats.has(m)
+			if is_attack:
+				# If we are attacking, we are less afraid of dying (aggressive!)
+				if moves_into_threat:
+					score -= 5
+			else:
+				if moves_into_threat:
+					score -= 15 # Still try to avoid walking into death for no reason
+				elif currently_threatened:
+					score += 8 # Slight bonus for escaping
+					
+			# Prefer moving forward and center
+			score += 3.0 - abs(m.x - 2) * 0.8
+			if m.y > bot.grid_pos.y: score += 3.0
 			
 			if score > best_score:
 				best_score = score

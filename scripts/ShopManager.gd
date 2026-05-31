@@ -47,7 +47,7 @@ func generate_shop():
 		btn.custom_minimum_size = Vector2(160, 200)
 		btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		
-		btn.icon = main.get_item_texture(item_type)
+		btn.icon = main.inventory_manager.get_item_texture(item_type)
 		btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		btn.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 		btn.expand_icon = true
