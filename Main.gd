@@ -376,14 +376,14 @@ func start_new_run(slot: int):
 	for child in board_node.get_children():
 		if child != overlay and child != map_king and child is Sprite2D:
 			child.queue_free()
-	EnemySpawner.spawn_piece(self, 0, ROWS - 1, true, PieceType.KNIGHT)
-	EnemySpawner.spawn_piece(self, 1, ROWS - 1, true, PieceType.BISHOP)
+	#EnemySpawner.spawn_piece(self, 0, ROWS - 1, true, PieceType.KNIGHT)
+	#EnemySpawner.spawn_piece(self, 1, ROWS - 1, true, PieceType.BISHOP)
 	EnemySpawner.spawn_piece(self, 2, ROWS - 1, true, PieceType.KING)
-	EnemySpawner.spawn_piece(self, 3, ROWS - 1, true, PieceType.QUEEN)
-	EnemySpawner.spawn_piece(self, 4, ROWS - 1, true, PieceType.ROOK)
+	#EnemySpawner.spawn_piece(self, 3, ROWS - 1, true, PieceType.QUEEN)
+	#EnemySpawner.spawn_piece(self, 4, ROWS - 1, true, PieceType.ROOK)
 	
-	for i in range(COLS):
-		EnemySpawner.spawn_piece(self, i, ROWS - 2, true, PieceType.PAWN)
+	#for i in range(COLS):
+	#	EnemySpawner.spawn_piece(self, i, ROWS - 2, true, PieceType.PAWN)
 	map_manager.generate_map()
 	start_map_mode()
 	save_game_state()

@@ -1,7 +1,7 @@
 72322a848ab928aa5c89f0cb78209805
-::res://::1780236754
+::res://::1780239807
 export_presets.cfg::TextFile::-1::1780003218::0::1::::<><><>0<>0<><>::
-Main.gd::GDScript::536737830262157081::1780236505::0::1::::Main<>Node2D<><>0<>0<><>::
+Main.gd::GDScript::536737830262157081::1780239716::0::1::::Main<>Node2D<><>0<>0<><>::
 Main.tscn::PackedScene::6164277545058517::1780003218::0::1::::<><><>0<>0<><>::uid://hv881wi8dqm0::::res://Main.gd
 MainMenu.tscn::PackedScene::5669073177269341118::1780003218::0::1::::<><><>0<>0<><>::res://scripts/MainMenu.gd
 output.log::TextFile::-1::1780003218::0::1::::<><><>0<>0<><>::
@@ -11,7 +11,7 @@ stdout.txt::TextFile::-1::1780003218::0::1::::<><><>0<>0<><>::
 test.gd::GDScript::1441797517433848359::1780168038::0::1::::<>RefCounted<><>0<>0<><>::
 test_out.txt::TextFile::-1::1780003218::0::1::::<><><>0<>0<><>::
 test_tex.gd::GDScript::2501267623855909121::1780003218::0::1::::<>SceneTree<><>0<>0<><>::
-::res://images/::1780236402
+::res://images/::1780236756
 angel.svg::CompressedTexture2D::6262720692805968633::1780003218::1780236755::1::::<><><>0<>0<>20f466c7b64078b966e8119d6ba54895<>res://.godot/imported/angel.svg-20edff648befdc0991165e5fff7f3b5e.ctex::
 bishop.png::CompressedTexture2D::6844487180433957337::1780233841::1780236756::1::::<><><>0<>0<>a17f9d86e30ca71b1a0c27b1a188a283<>res://.godot/imported/bishop.png-32d6aa4ab75701086374aedc03ef450c.ctex::
 bishop_bot.svg::CompressedTexture2D::1558852406474288871::1780003218::1780236755::1::::<><><>0<>0<>75e5bd1a4cc3afde08f3d2ab668d9c43<>res://.godot/imported/bishop_bot.svg-dd05831a43e99825d691b996704fc0a2.ctex::
@@ -91,16 +91,17 @@ torch.svg::CompressedTexture2D::7965312154833627096::1780063427::1780236755::1::
 trapdoor.svg::CompressedTexture2D::4450195413325249830::1780003218::1780236755::1::::<><><>0<>0<>f3692b3ff6c211498950b17e9a594057<>res://.godot/imported/trapdoor.svg-386c7b5cf58d51bb9c6953e878231253.ctex::
 treasury.png::CompressedTexture2D::3558899623836897707::1780009784::1780236755::1::::<><><>0<>0<>3865b35dc1b7cf43548668571340c596<>res://.godot/imported/treasury.png-efae4486d5a492a0d6752160ee99d60c.ctex::
 ::res://scratch/::1780186441
-::res://scripts/::1780188212
+::res://scripts/::1780238199
 BossEntity.gd::GDScript::3899817797429303461::1780003218::0::1::::BossEntity<>Entity<><>0<>0<><>::
 Clouds.gdshader::Shader::9006236186834939743::1780183541::0::1::::<><><>0<>0<><>::
 CombatManager.gd::GDScript::8848150187635588181::1780177214::0::1::::CombatManager<>RefCounted<><>0<>0<><>::
 DebugOverlay.gd::GDScript::2245228755711474360::1780187327::0::1::::<>CanvasLayer<><>0<>0<><>::
-DragSlot.gd::GDScript::8784508177515810272::1780185084::0::1::::DragSlot<>TextureRect<><>0<>0<><>::
+DragSlot.gd::GDScript::8784508177515810272::1780237992::0::1::::DragSlot<>TextureRect<><>0<>0<><>::
 EnemyAI.gd::GDScript::2730703094068433146::1780003218::0::1::::EnemyAI<>RefCounted<><>0<>0<><>::
-EnemySpawner.gd::GDScript::8643277287748537257::1780236505::0::1::::EnemySpawner<>RefCounted<><>0<>0<><>::
-Entity.gd::GDScript::7798061459430186865::1780066698::0::1::::Entity<>Sprite2D<><>0<>0<><>::
+EnemySpawner.gd::GDScript::8643277287748537257::1780238807::0::1::::EnemySpawner<>RefCounted<><>0<>0<><>::
+Entity.gd::GDScript::7798061459430186865::1780238061::0::1::::Entity<>Sprite2D<><>0<>0<><>::
 EventManager.gd::GDScript::6898219180594967326::1780188443::0::1::::EventManager<>Node<><>0<>0<><>::
+InventoryManager.gd::GDScript::388471320972680933::1780238638::0::1::::InventoryManager<>RefCounted<><>0<>0<><>::
 ItemManager.gd::GDScript::3031198855503708686::1780147577::0::1::::ItemManager<>RefCounted<><>0<>0<><>::
 MainMenu.gd::GDScript::6278099176937221550::1780003218::0::1::::MainMenu<>Control<><>0<>0<><>::
 MapManager.gd::GDScript::5812630870536083930::1780164216::0::1::::MapManager<>Node<><>0<>0<><>::
@@ -110,4 +111,5 @@ SaveManager.gd::GDScript::1449600648298893166::1780174815::0::1::::SaveManager<>
 SettingsMenu.gd::GDScript::7209816906054306216::1780219999::0::1::::SettingsMenu<>ColorRect<><>0<>0<><>::
 ShopManager.gd::GDScript::9075694876165508696::1780154889::0::1::::ShopManager<>RefCounted<><>0<>0<><>::
 TranslationManager.gd::GDScript::8532815870570682080::1780186292::0::1::::TranslationManager<>RefCounted<><>0<>0<><>::
-UIBuilder.gd::GDScript::8999472347191260665::1780235328::0::1::::UIBuilder<>RefCounted<><>0<>0<><>::
+UIBuilder.gd::GDScript::8999472347191260665::1780239004::0::1::::UIBuilder<>RefCounted<><>0<>0<><>::
+VisualEffects.gd::GDScript::1376517744237912448::1780238061::0::1::::VisualEffects<>RefCounted<><>0<>0<><>::
