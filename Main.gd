@@ -662,12 +662,12 @@ func populate_gy_container(container: Control, list: Array):
 			tex_rect.texture = dead.tex
 		if tex_rect.texture == null:
 			tex_rect.texture = preload("res://images/pawn.png")
-		tex_rect.custom_minimum_size = Vector2(96, 96)
+		tex_rect.custom_minimum_size = Vector2(128, 128)
 		tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		tex_rect.mouse_filter = Control.MOUSE_FILTER_STOP
 		
-		tex_rect.pivot_offset = Vector2(32, 32)
+		tex_rect.pivot_offset = Vector2(64, 64)
 		tex_rect.mouse_entered.connect(func():
 			tex_rect.modulate = Color(1.2, 1.2, 1.2, 1.0)
 			tex_rect.z_index = 10
@@ -692,10 +692,7 @@ func update_graveyard_ui():
 	if enemy_graveyard_container:
 		populate_gy_container(enemy_graveyard_container, enemy_graveyard)
 	if graveyard_panel:
-		if graveyard.is_empty() and enemy_graveyard.is_empty():
-			graveyard_panel.hide()
-		else:
-			graveyard_panel.show()
+		graveyard_panel.show()
 
 func update_ui():
 	coins_label.text = "Coins: %d" % coins

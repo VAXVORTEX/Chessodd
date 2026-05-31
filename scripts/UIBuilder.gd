@@ -732,7 +732,7 @@ static func create_ui(main: Node):
 	main.graveyard_panel.add_theme_stylebox_override("panel", g_style)
 	main.graveyard_panel.custom_minimum_size = Vector2(0, 0)
 	main.graveyard_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	main.graveyard_panel.hide()
+	main.graveyard_panel.show()
 	right_vbox.add_child(main.graveyard_panel)
 	
 	var gy_vbox = VBoxContainer.new()
@@ -754,7 +754,7 @@ static func create_ui(main: Node):
 	gy_vbox.add_child(egy_scroll)
 	
 	main.enemy_graveyard_container = HBoxContainer.new()
-	main.enemy_graveyard_container.add_theme_constant_override("separation", -32)
+	main.enemy_graveyard_container.add_theme_constant_override("separation", -64)
 	main.enemy_graveyard_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	egy_scroll.add_child(main.enemy_graveyard_container)
 
@@ -773,7 +773,7 @@ static func create_ui(main: Node):
 	gy_vbox.add_child(gy_scroll)
 	
 	main.graveyard_container = HBoxContainer.new()
-	main.graveyard_container.add_theme_constant_override("separation", -32)
+	main.graveyard_container.add_theme_constant_override("separation", -64)
 	main.graveyard_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	gy_scroll.add_child(main.graveyard_container)
 
