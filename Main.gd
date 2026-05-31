@@ -517,7 +517,7 @@ func save_game_state():
 	}
 	SaveManager.save_game(current_save_slot, data)
 
-func _process(delta):
+func _process(_delta):
 	if get_tree().paused: return
 	
 	if item_tooltip and item_tooltip.visible:
@@ -649,13 +649,13 @@ func populate_gy_container(container: Control, list: Array):
 		tex_rect.mouse_entered.connect(func():
 			tex_rect.modulate = Color(1.2, 1.2, 1.2, 1.0)
 			tex_rect.z_index = 10
-			var tween = create_tween()
+			tween = create_tween()
 			tween.tween_property(tex_rect, "scale", Vector2(1.15, 1.15), 0.1)
 		)
 		tex_rect.mouse_exited.connect(func():
 			tex_rect.modulate = Color.WHITE
 			tex_rect.z_index = 0
-			var tween = create_tween()
+			tween = create_tween()
 			tween.tween_property(tex_rect, "scale", Vector2(1.0, 1.0), 0.1)
 		)
 		tex_rect.gui_input.connect(func(event):
@@ -1260,7 +1260,7 @@ func _input(event):
 							line.default_color = Color.RED
 							line.z_index = 5
 							board_node.add_child(line)
-							var tween = create_tween()
+							tween = create_tween()
 							tween.tween_property(line, "modulate:a", 0.0, 0.5)
 							tween.tween_callback(line.queue_free)
 							take_damage(board[t], target.attack_damage, target)
@@ -1320,7 +1320,7 @@ func _input(event):
 						
 						var bump_px = (g_pos * CELL_SIZE_V + push_pos * CELL_SIZE_V) / 2.0 + (CELL_SIZE_V / 2.0)
 						var orig_px = g_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
-						var tween = create_tween()
+						tween = create_tween()
 						tween.tween_property(target, "position", bump_px, 0.1)
 						tween.tween_property(target, "position", orig_px, 0.1)
 					else:
@@ -1331,7 +1331,7 @@ func _input(event):
 							target.grid_pos = push_pos
 							board[push_pos] = target
 							
-							var tween = create_tween()
+							tween = create_tween()
 							tween.tween_property(target, "position", push_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.2)
 							tween.tween_callback(func(): check_nightmare_pawns_interaction(target))
 						if selected_piece: update_info_panel(selected_piece.grid_pos)
@@ -1630,7 +1630,7 @@ func take_damage(piece, amt, attacker = null):
 			
 			# Wait, head should be added to board if the cell is empty?
 			# The prompt says "летит по диагонали на 2 клетки и если есть фигура на его пути то он ее сталкивает на 1 клетку назад и наносит 1 урон"
-			var tween = create_tween()
+			tween = create_tween()
 			tween.tween_property(head, "position", target_head_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.5)
 			
 			# Handle push on the way
@@ -1697,7 +1697,7 @@ func take_damage(piece, amt, attacker = null):
 				var sf = min((CELL_SIZE_V.x * 3.0) / ts.x, (CELL_SIZE_V.y * 3.0) / ts.y)
 				burst.scale = Vector2(sf, sf)
 				board_node.add_child(burst)
-				var tween = create_tween()
+				tween = create_tween()
 				tween.tween_property(burst, "modulate:a", 0.0, 2.0)
 				tween.tween_callback(burst.queue_free)
 				
@@ -1791,7 +1791,7 @@ func perform_action(piece, target_pos):
 			if piece.has_meta("is_clone"):
 				show_floating_text(piece.grid_pos, "SPLAT!", Color.AQUA)
 				take_damage(piece, 9999)
-				var tween = create_tween()
+				tween = create_tween()
 				end_turn_with_tween(null, target_pos, tween, piece.is_player)
 				return
 			
@@ -1828,7 +1828,7 @@ func perform_action(piece, target_pos):
 			piece.grid_pos = target_pos
 			board[target_pos] = piece
 			
-			var tween = create_tween()
+			tween = create_tween()
 			tween.tween_property(piece, "position", target_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.3)
 			end_turn_with_tween(piece, target_pos, tween)
 			return
@@ -1838,7 +1838,7 @@ func perform_action(piece, target_pos):
 		if piece.has_meta("is_clone") and was_poop:
 			show_floating_text(piece.grid_pos, TranslationManager.translate("splat"), Color.BROWN)
 			take_damage(piece, 9999)
-			var tween = create_tween()
+			tween = create_tween()
 			end_turn_with_tween(null, target_pos, tween, piece.is_player)
 			return
 			
@@ -1853,7 +1853,7 @@ func perform_action(piece, target_pos):
 			show_floating_text(g_pos, TranslationManager.translate("spiked"), Color.RED)
 			
 		var bump_pos = (g_pos * CELL_SIZE_V + target_pos * CELL_SIZE_V) / 2.0 + (CELL_SIZE_V / 2.0)
-		var tween = create_tween()
+		tween = create_tween()
 		if is_instance_valid(piece):
 			tween.tween_property(piece, "position", bump_pos, 0.15)
 		
@@ -1933,7 +1933,7 @@ func perform_action(piece, target_pos):
 		board[target_pos] = piece
 		handle_movement_bleed(piece, g_pos, target_pos)
 		
-		var tween = create_tween()
+		tween = create_tween()
 		tween.tween_property(piece, "position", target_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.3)
 		if piece.is_player and piece.artifacts.has("brain_jar") and not piece.get_meta("brain_used_this_turn", false):
 			piece.set_meta("brain_used_this_turn", true)
@@ -2131,9 +2131,9 @@ func show_dead_piece_info(dead):
 		if i < info_item_slots.get_child_count():
 			var slot = info_item_slots.get_child(i)
 			if dead.has("artifacts") and i < dead.artifacts.size():
-				slot.texture = load("res://images/items/%s.png" % dead.artifacts[i])
+				slot.get_child(0).texture = load("res://images/items/%s.png" % dead.artifacts[i])
 			else:
-				slot.texture = null
+				slot.get_child(0).texture = null
 				
 func update_info_panel(g_pos):
 	var found = null
@@ -2552,7 +2552,7 @@ func start_next_level(node_info):
 		
 	save_game_state()
 
-func start_dark_mirror_targeting(p, slot_ui = null):
+func start_dark_mirror_targeting(_p, slot_ui = null):
 	inv_panel.hide()
 	state = GameState.TARGETING_DARK_MIRROR
 	active_item_slot_ui = slot_ui
@@ -2561,7 +2561,7 @@ func start_dark_mirror_targeting(p, slot_ui = null):
 	status_label.text = "Select adjacent empty tile for clone..."
 	status_label.set("theme_override_colors/font_color", Color.CYAN)
 
-func start_hand_targeting(p, slot_ui = null):
+func start_hand_targeting(_p, slot_ui = null):
 	inv_panel.hide()
 	state = GameState.TARGETING_HAND
 	active_item_slot_ui = slot_ui
@@ -2570,7 +2570,7 @@ func start_hand_targeting(p, slot_ui = null):
 	status_label.text = "Select enemy up to 2 cells orthogonally..."
 	status_label.set("theme_override_colors/font_color", Color.ORANGE)
 
-func start_blood_knife_targeting(p, slot_ui = null):
+func start_blood_knife_targeting(_p, slot_ui = null):
 	inv_panel.hide()
 	state = GameState.TARGETING_BLOOD_KNIFE
 	active_item_slot_ui = slot_ui
@@ -2579,7 +2579,7 @@ func start_blood_knife_targeting(p, slot_ui = null):
 	status_label.text = "Select target to bleed (range 3)..."
 	status_label.set("theme_override_colors/font_color", Color.RED)
 
-func start_torch_targeting(p, slot_ui = null):
+func start_torch_targeting(_p, slot_ui = null):
 	inv_panel.hide()
 	state = GameState.TARGETING_TORCH
 	active_item_slot_ui = slot_ui
@@ -2588,7 +2588,7 @@ func start_torch_targeting(p, slot_ui = null):
 	status_label.text = "Select target to burn (range 3)..."
 	status_label.set("theme_override_colors/font_color", Color.ORANGE)
 
-func start_finger_targeting(p, slot_ui = null):
+func start_finger_targeting(_p, slot_ui = null):
 	inv_panel.hide()
 	state = GameState.TARGETING_FINGER
 	active_item_slot_ui = slot_ui
@@ -2805,15 +2805,18 @@ func start_map_mode():
 			lbl.set_meta("map_node_type", n.type)
 			lbl.add_to_group("translateable")
 			board_node.add_child(lbl)
+	var k_tex = PieceData.get_piece_texture(PieceType.KING, true)
 	if not map_king or not is_instance_valid(map_king):
 		map_king = Sprite2D.new()
-		map_king.texture = tex_king_player
+		map_king.texture = k_tex
 		map_king.z_index = 5
 		map_king.set_meta("is_map_stuff", true)
 		board_node.add_child(map_king)
+	else:
+		map_king.texture = k_tex
 	map_king.show()
-	if tex_king_player:
-		var ts = tex_king_player.get_size()
+	if k_tex:
+		var ts = k_tex.get_size()
 		if ts.x > 0:
 			map_king.scale = Vector2.ONE * min((CELL_SIZE_V.x * 0.75) / ts.x, (CELL_SIZE_V.y * 0.75) / ts.y)
 	var king_gp = Vector2(2, 13)
