@@ -648,14 +648,19 @@ func populate_gy_container(container: Control, list: Array):
 		tex_rect.mouse_filter = Control.MOUSE_FILTER_STOP
 		
 		tex_rect.pivot_offset = Vector2(64, 64)
+		var base_color = Color.WHITE
+		if dead.has("is_player") and not dead.is_player and dead.has("type") and dead.type != PieceType.POOP and dead.type != PieceType.ROCK and dead.type != PieceType.BOMB_BARREL:
+			base_color = Color(1.0, 0.4, 0.4)
+		tex_rect.modulate = base_color
+		
 		tex_rect.mouse_entered.connect(func():
-			tex_rect.modulate = Color(1.2, 1.2, 1.2, 1.0)
+			tex_rect.modulate = Color(base_color.r * 1.2, base_color.g * 1.2, base_color.b * 1.2, 1.0)
 			tex_rect.z_index = 10
 			var tween = create_tween()
 			tween.tween_property(tex_rect, "scale", Vector2(1.15, 1.15), 0.1)
 		)
 		tex_rect.mouse_exited.connect(func():
-			tex_rect.modulate = Color.WHITE
+			tex_rect.modulate = base_color
 			tex_rect.z_index = 0
 			var tween = create_tween()
 			tween.tween_property(tex_rect, "scale", Vector2(1.0, 1.0), 0.1)
@@ -1790,6 +1795,10 @@ func show_dead_piece_info(dead):
 		info_tex.texture = PieceData.get_piece_texture(dead.type, dead.is_player)
 	
 	info_tex.scale = Vector2(1, 1)
+	var base_c = Color.WHITE
+	if not dead.is_player and dead.has("type") and dead.type != PieceType.POOP and dead.type != PieceType.ROCK and dead.type != PieceType.BOMB_BARREL:
+		base_c = Color(1.0, 0.4, 0.4)
+	info_tex.modulate = base_c
 	
 	for i in range(3):
 		if i < info_item_slots.get_child_count():

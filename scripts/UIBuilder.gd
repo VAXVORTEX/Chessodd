@@ -753,9 +753,13 @@ static func create_ui(main: Node):
 	egy_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	gy_vbox.add_child(egy_scroll)
 	
+	var egy_margin = MarginContainer.new()
+	egy_margin.add_theme_constant_override("margin_top", 16)
+	egy_margin.add_theme_constant_override("margin_bottom", 16)
+	egy_scroll.add_child(egy_margin)
 	main.enemy_graveyard_container = HBoxContainer.new()
 	main.enemy_graveyard_container.add_theme_constant_override("separation", -64)
-	egy_scroll.add_child(main.enemy_graveyard_container)
+	egy_margin.add_child(main.enemy_graveyard_container)
 
 	main.lbl_graveyard_title = Label.new()
 	main.lbl_graveyard_title.text = "Your figures"
@@ -771,9 +775,13 @@ static func create_ui(main: Node):
 	gy_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	gy_vbox.add_child(gy_scroll)
 	
+	var gy_margin = MarginContainer.new()
+	gy_margin.add_theme_constant_override("margin_top", 16)
+	gy_margin.add_theme_constant_override("margin_bottom", 16)
+	gy_scroll.add_child(gy_margin)
 	main.graveyard_container = HBoxContainer.new()
 	main.graveyard_container.add_theme_constant_override("separation", -64)
-	gy_scroll.add_child(main.graveyard_container)
+	gy_margin.add_child(main.graveyard_container)
 
 	main.ui_layer.move_child(hud_panel, -1)
 	main.ui_layer.move_child(right_hud_panel, -1)
