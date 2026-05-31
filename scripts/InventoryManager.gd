@@ -120,34 +120,34 @@ func on_item_dropped(src_slot: DragSlot, dst_slot: DragSlot):
 
 func get_item_texture(item_id: String):
 	match item_id:
-		"knife": return tex_knife
-		"bottle": return tex_bottle
-		"boots": return tex_boots
-		"deadking_head": return tex_deadking_head
-		"dark_mirror": return tex_dark_mirror
-		"hand": return tex_hand
-		"blood_knife": return tex_blood_knife
-		"torch": return tex_torch
-		"finger": return tex_finger
-		"shark_tooth": return tex_shark_tooth
-		"hoof": return tex_hoof
-		"brain_jar": return tex_brain_jar
+		"knife": return main.tex_knife
+		"bottle": return main.tex_bottle
+		"boots": return main.tex_boots
+		"deadking_head": return main.tex_deadking_head
+		"dark_mirror": return main.tex_dark_mirror
+		"hand": return main.tex_hand
+		"blood_knife": return main.tex_blood_knife
+		"torch": return main.tex_torch
+		"finger": return main.tex_finger
+		"shark_tooth": return main.tex_shark_tooth
+		"hoof": return main.tex_hoof
+		"brain_jar": return main.tex_brain_jar
 	return null
 
 func show_custom_tooltip(text: String):
-	item_tooltip_lbl.text = text
-	item_tooltip.show()
+	main.item_tooltip_lbl.text = text
+	main.item_tooltip.show()
 
 func hide_custom_tooltip():
-	item_tooltip.hide()
+	main.item_tooltip.hide()
 
 func show_item_info(item_id: String, pos: Vector2):
 	if item_id == "": return
 	main.info_panel.show()
 	main.info_panel.position = pos
-	info_name.text = item_id.capitalize()
-	info_stats.text = ""
-	info_desc.text = ItemManager.get_item_description(item_id)
+	main.info_name.text = item_id.capitalize()
+	main.info_stats.text = ""
+	main.info_desc.text = ItemManager.get_item_description(item_id)
 
 func get_piece_name(type):
 	var data = PieceData.registry.get(type)
@@ -155,9 +155,9 @@ func get_piece_name(type):
 	return "Unknown"
 
 func update_inventory_screen():
-	inv_start_btn.visible = true
+	main.inv_start_btn.visible = true
 	
-	for c in inv_pieces_list.get_children():
+	for c in main.inv_pieces_list.get_children():
 		c.queue_free()
 		
 	var type_counts = {}
@@ -204,7 +204,7 @@ func update_inventory_screen():
 		vbox.add_child(lbl)
 		
 		panel.add_child(vbox)
-		inv_pieces_list.add_child(panel)
+		main.inv_pieces_list.add_child(panel)
 		
 	if main.player_pawns.size() > 0:
 		if main.current_view_index >= main.player_pawns.size(): main.current_view_index = 0
@@ -212,9 +212,9 @@ func update_inventory_screen():
 	else:
 		main.inv_piece_tex.texture = null
 		main.inv_piece_name.text = ""
-		inv_piece_desc.text = ""
-		inv_piece_stats.text = ""
-		for c in inv_piece_slots.get_children(): c.queue_free()
+		main.inv_piece_desc.text = ""
+		main.inv_piece_stats.text = ""
+		for c in main.inv_piece_slots.get_children(): c.queue_free()
 			
 	for c in main.inv_pool_grid.get_children():
 		c.queue_free()
@@ -239,3 +239,74 @@ func update_inventory_screen():
 		bg.add_child(drag_slot)
 		main.inv_pool_grid.add_child(bg)
 
+
+func update_inventory_selection():
+	if main.player_pawns.is_empty(): return
+	var p = main.player_pawns[main.current_view_index]
+	main.inv_piece_tex.texture = p.texture
+	
+	var type_counts = {}
+	for cp in main.player_pawns: type_counts[cp.piece_type] = type_counts.get(cp.piece_type, 0) + 1
+	var idx = 1
+	for j in range(main.current_view_index):
+		if main.player_pawns[j].piece_type == p.piece_type: idx += 1
+		
+	var n = get_piece_name(p.piece_type)
+	if type_counts[p.piece_type] > 1: n += " " + str(idx)
+	main.inv_piece_name.text = n
+
+	
+	var desc = ""
+	match p.piece_type:
+		PieceType.PAWN: desc = "Moves 1 step forward. Attacks diagonally forward."
+		PieceType.KNIGHT: desc = "Moves in an 'L' shape. Can jump over other pieces."
+		PieceType.BISHOP: desc = "Moves diagonally any number of spaces."
+		PieceType.ROOK: desc = "Moves horizontally or vertically any number of spaces."
+		PieceType.QUEEN: desc = "Moves in any direction any number of spaces."
+		PieceType.KING: desc = "Moves 1 step in any direction. If King dies, you lose."
+		PieceType.SPIKED_PAWN: desc = "Melee attackers take 1 damage."
+		PieceType.TELEPAWN: desc = "Moves 1 step horizontally and vertically. Attacks diagonally forward. Teleports randomly after attacking."
+	main.inv_piece_desc.text = desc
+	
+	main.inv_piece_stats.text = "HP: %d/%d  |  ATK: %d" % [p.current_hp, p.max_hp, p.attack_damage]
+	
+	for c in main.inv_piece_slots.get_children():
+		c.queue_free()
+		
+	var arts = p.artifacts
+	while arts.size() < 3:
+		arts.append("")
+	var is_mirror = arts[1] == "dark_mirror"
+	var is_checker = p.piece_type == PieceType.CHECKER
+	for i in range(3):
+		if is_checker:
+			continue
+		var bg = ColorRect.new()
+		bg.custom_minimum_size = Vector2(100, 100)
+		if is_mirror and (i == 0 or i == 2):
+			bg.color = Color(0.4, 0.1, 0.1, 0.8)
+		else:
+			bg.color = Color(0.2, 0.2, 0.2, 0.8)
+		bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		
+		var drag_slot = load("res://scripts/DragSlot.gd").new()
+		drag_slot.slot_type = "piece"
+		drag_slot.slot_index = i
+		drag_slot.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		drag_slot.custom_minimum_size = Vector2(80, 80)
+		drag_slot.mouse_filter = Control.MOUSE_FILTER_STOP
+		
+		drag_slot.item_id = arts[i]
+		if is_mirror and (i == 0 or i == 2):
+			var lock_lbl = Label.new()
+			lock_lbl.text = "LOCKED"
+			lock_lbl.set("theme_override_font_sizes/font_size", 16)
+			lock_lbl.set("theme_override_colors/font_color", Color(1.0, 0.3, 0.3))
+			lock_lbl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			lock_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			lock_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			drag_slot.add_child(lock_lbl)
+			drag_slot.modulate = Color(0.7, 0.7, 0.7)
+			
+		bg.add_child(drag_slot)
+		main.inv_piece_slots.add_child(bg)
