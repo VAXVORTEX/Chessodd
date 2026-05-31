@@ -303,9 +303,9 @@ func show_event_ui(title: String, desc: String, icons: Array, event_type: String
 			var tex_r = TextureRect.new()
 			tex_r.texture = tex
 			tex_r.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			tex_r.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			tex_r.custom_minimum_size = Vector2(120, 120)
-			hbox.add_child(tr)
+			hbox.add_child(tex_r)
 	
 	var lbl_desc = Label.new()
 	lbl_desc.text = desc
