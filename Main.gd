@@ -683,11 +683,15 @@ func populate_gy_container(container: Control, list: Array):
 		container.add_child(tex_rect)
 
 func update_graveyard_ui():
-	if graveyard_panel: graveyard_panel.show()
 	if graveyard_container:
 		populate_gy_container(graveyard_container, graveyard)
 	if enemy_graveyard_container:
 		populate_gy_container(enemy_graveyard_container, enemy_graveyard)
+	if graveyard_panel:
+		if graveyard.is_empty() and enemy_graveyard.is_empty():
+			graveyard_panel.hide()
+		else:
+			graveyard_panel.show()
 
 func update_ui():
 	coins_label.text = "Coins: %d" % coins
@@ -2609,12 +2613,18 @@ func update_map_scroll():
 	
 	var screen_h = get_window().size.y
 	# We want the current node to be centered roughly in the middle of the screen height.
-	var target_y = (screen_h * 0.8) - BOARD_OFFSET.y - (current_y * CELL_SIZE_V.y)
+	var target_y = (screen_h * 0.5) - BOARD_OFFSET.y - (current_y * CELL_SIZE_V.y)
 	
 	# Clamp scrolling so it doesn't reveal empty space outside the map bounds
 	var max_y = 100.0 # Don't pull the top edge down too much
-	var min_y = screen_h - BOARD_OFFSET.y - (MAP_ROWS * CELL_SIZE_V.y) - 100.0
-	target_y = clamp(target_y, min_y, max_y)
+	var map_height = MAP_ROWS * CELL_SIZE_V.y
+	var min_y = screen_h - BOARD_OFFSET.y - map_height - 100.0
+	
+	if min_y > max_y:
+		# Screen is taller than the entire map. Center the map vertically.
+		target_y = (screen_h - map_height) / 2.0 - BOARD_OFFSET.y
+	else:
+		target_y = clamp(target_y, min_y, max_y)
 	
 	var target_pos = Vector2(BOARD_OFFSET.x, target_y)
 	

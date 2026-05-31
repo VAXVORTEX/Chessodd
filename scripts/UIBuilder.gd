@@ -730,11 +730,9 @@ static func create_ui(main: Node):
 	g_style.border_width_left = 4
 	g_style.border_color = Color(0.3, 0.35, 0.4)
 	main.graveyard_panel.add_theme_stylebox_override("panel", g_style)
-	main.graveyard_panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	main.graveyard_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	main.graveyard_panel.position = Vector2(1920 - 350, 160)
-	main.graveyard_panel.custom_minimum_size = Vector2(350, 600)
-	main.ui_layer.add_child(main.graveyard_panel)
+	main.graveyard_panel.custom_minimum_size = Vector2(0, 400)
+	main.graveyard_panel.hide()
+	right_vbox.add_child(main.graveyard_panel)
 	
 	var gy_vbox = VBoxContainer.new()
 	gy_vbox.add_theme_constant_override("separation", 10)
