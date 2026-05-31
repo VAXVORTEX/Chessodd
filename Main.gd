@@ -662,7 +662,7 @@ func populate_gy_container(container: Control, list: Array):
 			tex_rect.texture = dead.tex
 		if tex_rect.texture == null:
 			tex_rect.texture = preload("res://images/pawn.png")
-		tex_rect.custom_minimum_size = Vector2(64, 64)
+		tex_rect.custom_minimum_size = Vector2(96, 96)
 		tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		tex_rect.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -1624,7 +1624,6 @@ func take_damage(piece, amt, attacker = null):
 			if p_name.find("blood") != -1:
 				heal_amt = 2
 			attacker.current_hp += heal_amt
-			if attacker.current_hp > attacker.max_hp: attacker.current_hp = attacker.max_hp
 			show_floating_text(attacker.grid_pos, "+%d HP" % heal_amt, Color.RED)
 			update_ui()
 			
@@ -2097,13 +2096,7 @@ func start_player_turn():
 	status_label.text = TranslationManager.translate("player_turn", [turn_count])
 	status_label.set("theme_override_colors/font_color", Color.WHITE)
 	tick_statuses(true)
-	for p in player_pawns:
-		if is_instance_valid(p):
-			p.bottle_used_this_level = false
-			p.set_meta("hand_used_this_turn", false)
-			p.set_meta("mirror_used_this_turn", false)
-			p.set_meta("blood_knife_used_this_turn", false)
-			p.set_meta("torch_used_this_turn", false)
+	pass
 	check_win_condition()
 
 func bot_turn():
@@ -2127,7 +2120,9 @@ func show_dead_piece_info(dead):
 	var desc = ""
 	var max_hp = dead.get("max_hp", 0)
 	
-	var data = PieceData.registry.get(dead.type)
+	var dtype = dead.type
+	if typeof(dtype) == TYPE_FLOAT or typeof(dtype) == TYPE_STRING: dtype = int(dtype)
+	var data = PieceData.registry.get(dtype)
 	if data:
 		desc = data.get("desc", "")
 	
@@ -2153,10 +2148,7 @@ func show_dead_piece_info(dead):
 	else:
 		info_tex.texture = PieceData.get_piece_texture(dead.type, dead.is_player)
 	
-	var ts = info_tex.texture.get_size() if info_tex.texture else Vector2(1,1)
-	if ts.x > 0 and ts.y > 0:
-		var sf = min((CELL_SIZE_V.x * 0.9) / ts.x, (CELL_SIZE_V.y * 0.9) / ts.y)
-		info_tex.scale = Vector2(sf, sf)
+	info_tex.scale = Vector2(1, 1)
 	
 	for i in range(3):
 		if i < info_item_slots.get_child_count():
@@ -2220,6 +2212,15 @@ func update_info_panel(g_pos):
 			desc = data.get("desc", "")
 		
 		info_name.text = title
+		
+		if found.get("is_player") != null:
+			if found.is_player:
+				info_stats.set("theme_override_colors/font_color", Color(0.4, 0.8, 1.0))
+			else:
+				info_stats.set("theme_override_colors/font_color", Color(1.0, 0.4, 0.4))
+		else:
+			info_stats.set("theme_override_colors/font_color", Color.WHITE)
+			
 		if found.has_meta("is_obstacle") or found.piece_type == PieceType.CHECKER:
 			info_stats.modulate.a = 0 if found.has_meta("is_obstacle") else 1
 			info_item_slots.modulate.a = 0
@@ -2331,6 +2332,10 @@ func check_win_condition():
 
 func end_level():
 	if state == GameState.MAP: return
+	for p in player_pawns:
+		if is_instance_valid(p) and p.piece_type == PieceType.BLOOD_QUEEN:
+			if p.current_hp > 2:
+				p.current_hp = 2
 	info_panel.hide()
 	coins += randi_range(15, 20)
 	update_ui()
@@ -2446,6 +2451,15 @@ func start_next_level(node_info):
 	level = node_info.floor + 1
 	turn_count = 1
 	mirror_used_this_level = false
+	for p in player_pawns:
+		if is_instance_valid(p):
+			p.bottle_used_this_level = false
+			p.set_meta("hand_used_this_turn", false)
+			p.set_meta("mirror_used_this_turn", false)
+			p.set_meta("blood_knife_used_this_turn", false)
+			p.set_meta("torch_used_this_turn", false)
+			p.set_meta("finger_used_this_turn", false)
+			p.set_meta("brain_used_this_turn", false)
 	state = GameState.PLAYING
 	shop_panel.hide()
 	update_ui()
