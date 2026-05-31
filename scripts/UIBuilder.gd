@@ -739,27 +739,8 @@ static func create_ui(main: Node):
 	gy_vbox.add_theme_constant_override("separation", 10)
 	main.graveyard_panel.add_child(gy_vbox)
 	
-	main.lbl_graveyard_title = Label.new()
-	main.lbl_graveyard_title.text = "Your Deaths"
-	main.lbl_graveyard_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	main.lbl_graveyard_title.set("theme_override_colors/font_color", Color(0.5, 0.7, 1.0))
-	main.lbl_graveyard_title.set("theme_override_font_sizes/font_size", 20)
-	gy_vbox.add_child(main.lbl_graveyard_title)
-	
-	var gy_scroll = ScrollContainer.new()
-	gy_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	gy_scroll.custom_minimum_size = Vector2(0, 80)
-	gy_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	gy_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	gy_vbox.add_child(gy_scroll)
-	
-	main.graveyard_container = HBoxContainer.new()
-	main.graveyard_container.add_theme_constant_override("separation", -32)
-	main.graveyard_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	gy_scroll.add_child(main.graveyard_container)
-	
 	var enemy_gy_title = Label.new()
-	enemy_gy_title.text = "Enemy Deaths"
+	enemy_gy_title.text = "Enemy figures"
 	enemy_gy_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	enemy_gy_title.set("theme_override_colors/font_color", Color(1.0, 0.5, 0.5))
 	enemy_gy_title.set("theme_override_font_sizes/font_size", 20)
@@ -776,6 +757,25 @@ static func create_ui(main: Node):
 	main.enemy_graveyard_container.add_theme_constant_override("separation", -32)
 	main.enemy_graveyard_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	egy_scroll.add_child(main.enemy_graveyard_container)
+
+	main.lbl_graveyard_title = Label.new()
+	main.lbl_graveyard_title.text = "My figures"
+	main.lbl_graveyard_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	main.lbl_graveyard_title.set("theme_override_colors/font_color", Color(0.5, 0.7, 1.0))
+	main.lbl_graveyard_title.set("theme_override_font_sizes/font_size", 20)
+	gy_vbox.add_child(main.lbl_graveyard_title)
+	
+	var gy_scroll = ScrollContainer.new()
+	gy_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	gy_scroll.custom_minimum_size = Vector2(0, 80)
+	gy_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	gy_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	gy_vbox.add_child(gy_scroll)
+	
+	main.graveyard_container = HBoxContainer.new()
+	main.graveyard_container.add_theme_constant_override("separation", -32)
+	main.graveyard_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	gy_scroll.add_child(main.graveyard_container)
 
 	main.ui_layer.move_child(hud_panel, -1)
 	main.ui_layer.move_child(right_hud_panel, -1)

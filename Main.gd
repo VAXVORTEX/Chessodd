@@ -2701,6 +2701,8 @@ func _get_node_pos_map() -> Dictionary:
 
 func start_map_mode():
 	state = GameState.MAP
+	graveyard.clear()
+	enemy_graveyard.clear()
 	for lbl in get_tree().get_nodes_in_group("grid_labels"): lbl.hide()
 	save_game_state()
 	info_panel.hide()
@@ -2834,9 +2836,6 @@ func trigger_map_node(n):
 	tween.tween_callback(func(): start_map_node(n))
 
 func start_map_node(node):
-	graveyard.clear()
-	enemy_graveyard.clear()
-	update_graveyard_ui()
 	level = node.floor + 1
 	status_label.text = TranslationManager.translate("floor", [level])
 	match int(node.type):
