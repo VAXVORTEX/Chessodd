@@ -9,10 +9,12 @@ func toggle_inventory():
 	main.info_panel.hide()
 	if main.inv_panel.visible:
 		main.inv_panel.hide()
+		main.update_ui()
 		if main.state == main.GameState.SHOP:
 			main.shop_panel.show()
 	else:
 		refresh_player_pawns()
+		if main.graveyard_panel: main.graveyard_panel.hide()
 		if main.player_pawns.size() > 0:
 			if main.current_view_index >= main.player_pawns.size():
 				main.current_view_index = 0

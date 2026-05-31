@@ -56,7 +56,7 @@ func _get_drag_data(at_position):
 	if item_id == "": return null
 	
 	var main = get_tree().get_first_node_in_group("main")
-	if main and main.state != main.GameState.SHOP and main.state != main.GameState.MAP: return null
+	if main and main.state != main.GameState.SHOP and main.state != main.GameState.MAP and not main.inv_panel.visible: return null
 	
 	var c = Control.new()
 	c.z_index = 4096
