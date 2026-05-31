@@ -1100,7 +1100,7 @@ func can_move_or_attack(pos, is_player):
 	return p.is_player != is_player
 
 func get_valid_moves(pawn):
-	var type = pawn.piece_type
+	var _type = pawn.piece_type
 	var is_hoof = pawn.artifacts.has("hoof")
 	var is_knight = type == PieceType.KNIGHT
 	if is_hoof and not is_knight: type = PieceType.KNIGHT
@@ -1272,9 +1272,9 @@ func _input(event):
 							line.default_color = Color.RED
 							line.z_index = 5
 							board_node.add_child(line)
-							var tween = create_tween()
-							tween.tween_property(line, "modulate:a", 0.0, 0.5)
-							tween.tween_callback(line.queue_free)
+							var twn = create_tween()
+							twn.tween_property(line, "modulate:a", 0.0, 0.5)
+							twn.tween_callback(line.queue_free)
 							take_damage(board[t], target.attack_damage, target)
 							selected_piece.set_meta("finger_used_this_turn", true)
 							update_piece_slots(selected_piece)
@@ -1332,9 +1332,9 @@ func _input(event):
 						
 						var bump_px = (g_pos * CELL_SIZE_V + push_pos * CELL_SIZE_V) / 2.0 + (CELL_SIZE_V / 2.0)
 						var orig_px = g_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
-						var tween = create_tween()
-						tween.tween_property(target, "position", bump_px, 0.1)
-						tween.tween_property(target, "position", orig_px, 0.1)
+						var twn = create_tween()
+						twn.tween_property(target, "position", bump_px, 0.1)
+						twn.tween_property(target, "position", orig_px, 0.1)
 					else:
 						show_floating_text(g_pos, "PUSH!", Color.ORANGE)
 						take_damage(target, 1, selected_piece)
@@ -1343,9 +1343,9 @@ func _input(event):
 							target.grid_pos = push_pos
 							board[push_pos] = target
 							
-							var tween = create_tween()
-							tween.tween_property(target, "position", push_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.2)
-							tween.tween_callback(func(): check_nightmare_pawns_interaction(target))
+							var twn = create_tween()
+							twn.tween_property(target, "position", push_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.2)
+							twn.tween_callback(func(): check_nightmare_pawns_interaction(target))
 						if selected_piece: update_info_panel(selected_piece.grid_pos)
 						
 			state = GameState.PLAYING
@@ -1466,7 +1466,7 @@ func _on_overlay_draw():
 			var eg = b.grid_pos
 			var tp = b.get_meta("eye_target")
 			
-			var from_px = eg * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
+			var from_px = eg_pos_iter * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
 			var to_px = tp * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
 			
 			overlay.draw_line(from_px, to_px, Color(1, 0, 0, 0.7), 3.0)
@@ -1510,7 +1510,7 @@ func _on_overlay_draw():
 				overlay.draw_rect(Rect2(p.grid_pos * CELL_SIZE_V, CELL_SIZE_V), Color(0, 1, 0, 0.3))
 	elif state == GameState.TARGETING_DARK_MIRROR:
 		if selected_piece:
-			var g = selected_piece.grid_pos
+			var g_pos_iter = selected_piece.grid_pos
 			for dx in range(-1, 2):
 				for dy in range(-1, 2):
 					if dx == 0 and dy == 0: continue
@@ -1523,7 +1523,7 @@ func _on_overlay_draw():
 				overlay.draw_rect(Rect2(b.grid_pos * CELL_SIZE_V, CELL_SIZE_V), Color(1.0, 0.2, 0.8, 0.4))
 	elif state == GameState.TARGETING_HAND:
 		if selected_piece:
-			var g = selected_piece.grid_pos
+			var g_pos_iter = selected_piece.grid_pos
 			for d in [Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1)]:
 				for i in range(1, 3):
 					var t = g + d * i
@@ -1534,7 +1534,7 @@ func _on_overlay_draw():
 							overlay.draw_rect(Rect2(t * CELL_SIZE_V, CELL_SIZE_V), Color(1.0, 0.8, 0.4, 0.2))
 	elif state == GameState.TARGETING_BLOOD_KNIFE or state == GameState.TARGETING_TORCH:
 		if selected_piece:
-			var g = selected_piece.grid_pos
+			var g_pos_iter = selected_piece.grid_pos
 			for d in [Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1)]:
 				for i in range(1, 4):
 					var t = g + d * i
@@ -1562,16 +1562,16 @@ func show_floating_text(grid_pos, text, color, align = "center"):
 	lbl.position = grid_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0 - Vector2(20 + offset_x, 40))
 	board_node.add_child(lbl)
 	
-	var tween = create_tween()
-	tween.tween_property(lbl, "position", lbl.position + Vector2(0, -50), 1.0)
+	var twn = create_tween()
+	twn.tween_property(lbl, "position", lbl.position + Vector2(0, -50), 1.0)
 	tween.parallel().tween_property(lbl, "modulate:a", 0.0, 1.0)
-	tween.tween_callback(lbl.queue_free)
+	twn.tween_callback(lbl.queue_free)
 
 func shake_board(intensity: float, duration: float):
-	var tween = create_tween()
+	var twn = create_tween()
 	for i in range(4):
-		tween.tween_property(board_node, "position", BOARD_OFFSET + Vector2(randf_range(-intensity, intensity), randf_range(-intensity, intensity)), duration/5.0)
-	tween.tween_property(board_node, "position", BOARD_OFFSET, duration/5.0)
+		twn.tween_property(board_node, "position", BOARD_OFFSET + Vector2(randf_range(-intensity, intensity), randf_range(-intensity, intensity)), duration/5.0)
+	twn.tween_property(board_node, "position", BOARD_OFFSET, duration/5.0)
 
 func take_damage(piece, amt, attacker = null):
 	if amt > 0:
@@ -1616,7 +1616,7 @@ func take_damage(piece, amt, attacker = null):
 			update_ui()
 			
 		if piece.piece_type == PieceType.BOSS_DEADKING:
-			var g = piece.grid_pos
+			var g_pos_iter = piece.grid_pos
 			board.erase(g)
 			bot_pawns.erase(piece)
 			piece.queue_free()
@@ -1641,8 +1641,8 @@ func take_damage(piece, amt, attacker = null):
 			
 			# Wait, head should be added to board if the cell is empty?
 			# The prompt says "летит по диагонали на 2 клетки и если есть фигура на его пути то он ее сталкивает на 1 клетку назад и наносит 1 урон"
-			var tween = create_tween()
-			tween.tween_property(head, "position", target_head_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.5)
+			var twn = create_tween()
+			twn.tween_property(head, "position", target_head_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.5)
 			
 			# Handle push on the way
 			var path_pieces = [g + best_dir, g + best_dir * 2]
@@ -1674,7 +1674,7 @@ func take_damage(piece, amt, attacker = null):
 						head.grid_pos = alt
 						board[alt] = head
 						placed = true
-						tween.tween_property(head, "position", alt * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.2)
+						twn.tween_property(head, "position", alt * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.2)
 						break
 				if not placed:
 					# Nowhere to place head, just destroy it
@@ -1696,11 +1696,11 @@ func take_damage(piece, amt, attacker = null):
 		elif piece.piece_type == PieceType.BOMB_BARREL:
 			if not piece.has_meta("exploded"):
 				piece.set_meta("exploded", true)
-				var g = piece.grid_pos
+				var g_pos_iter = piece.grid_pos
 				
 				var burst = Sprite2D.new()
 				burst.texture = tex_bomb_barrel_burst
-				burst.position = g * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
+				burst.position = g_pos_iter * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
 				burst.z_index = 5
 				var ts = Vector2(1,1)
 				if tex_bomb_barrel_burst: ts = tex_bomb_barrel_burst.get_size()
@@ -1708,9 +1708,9 @@ func take_damage(piece, amt, attacker = null):
 				var sf = min((CELL_SIZE_V.x * 3.0) / ts.x, (CELL_SIZE_V.y * 3.0) / ts.y)
 				burst.scale = Vector2(sf, sf)
 				board_node.add_child(burst)
-				var tween = create_tween()
-				tween.tween_property(burst, "modulate:a", 0.0, 2.0)
-				tween.tween_callback(burst.queue_free)
+				var twn = create_tween()
+				twn.tween_property(burst, "modulate:a", 0.0, 2.0)
+				twn.tween_callback(burst.queue_free)
 				
 				var outline = Node2D.new()
 				var script = GDScript.new()
@@ -1718,12 +1718,12 @@ func take_damage(piece, amt, attacker = null):
 				script.reload()
 				outline.set_script(script)
 				outline.set("size", CELL_SIZE_V * 3.0)
-				outline.position = g * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
+				outline.position = g_pos_iter * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
 				outline.z_index = 4
 				board_node.add_child(outline)
 				var outline_tween = create_tween()
-				outline_tween.tween_property(outline, "modulate:a", 0.0, 2.0)
-				outline_tween.tween_callback(outline.queue_free)
+				outline_twn.tween_property(outline, "modulate:a", 0.0, 2.0)
+				outline_twn.tween_callback(outline.queue_free)
 				
 				var targets = []
 				for dx in range(-1, 2):
@@ -1744,7 +1744,7 @@ func take_damage(piece, amt, attacker = null):
 		if piece.is_player and piece.piece_type == PieceType.KING and not piece.has_meta("is_clone"):
 			trigger_game_over("Game Over! King Died!")
 			
-		var g = piece.grid_pos
+		var g_pos_iter = piece.grid_pos
 		board.erase(g)
 			
 		if not piece.is_player and piece.piece_type != PieceType.POOP:
@@ -1752,7 +1752,7 @@ func take_damage(piece, amt, attacker = null):
 			
 		var dead_tex = PieceData.get_piece_texture(piece.piece_type, piece.is_player)
 		var dead_title = PieceData.registry.get(piece.piece_type, {}).get("title", "?")
-		var dead_entry = {"tex": dead_tex, "name": dead_title, "is_player": piece.is_player, "max_hp": piece.max_hp, "artifacts": piece.artifacts.duplicate()}
+		var dead_entry = {"tex": dead_tex, "type": piece.piece_type, "name": dead_title, "is_player": piece.is_player, "max_hp": piece.max_hp, "artifacts": piece.artifacts.duplicate()}
 		
 		if piece.is_player:
 			graveyard.append(dead_entry)
@@ -1793,7 +1793,7 @@ func perform_action(piece, target_pos):
 	var g_pos = piece.grid_pos
 	var is_player = piece.is_player
 	var atk = piece.attack_damage
-	var type = piece.piece_type
+	var _type = piece.piece_type
 	var target_piece = board.get(target_pos)
 	
 	if target_piece:
@@ -1801,7 +1801,7 @@ func perform_action(piece, target_pos):
 			if piece.has_meta("is_clone"):
 				show_floating_text(piece.grid_pos, "SPLAT!", Color.AQUA)
 				take_damage(piece, 9999)
-				var tween = create_tween()
+				var twn = create_tween()
 				end_turn_with_tween(null, target_pos, tween, piece.is_player)
 				return
 			
@@ -1838,8 +1838,8 @@ func perform_action(piece, target_pos):
 			piece.grid_pos = target_pos
 			board[target_pos] = piece
 			
-			var tween = create_tween()
-			tween.tween_property(piece, "position", target_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.3)
+			var twn = create_tween()
+			twn.tween_property(piece, "position", target_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.3)
 			end_turn_with_tween(piece, target_pos, tween)
 			return
 			
@@ -1848,7 +1848,7 @@ func perform_action(piece, target_pos):
 		if piece.has_meta("is_clone") and was_poop:
 			show_floating_text(piece.grid_pos, TranslationManager.translate("splat"), Color.BROWN)
 			take_damage(piece, 9999)
-			var tween = create_tween()
+			var twn = create_tween()
 			end_turn_with_tween(null, target_pos, tween, piece.is_player)
 			return
 			
@@ -1863,9 +1863,9 @@ func perform_action(piece, target_pos):
 			show_floating_text(g_pos, TranslationManager.translate("spiked"), Color.RED)
 			
 		var bump_pos = (g_pos * CELL_SIZE_V + target_pos * CELL_SIZE_V) / 2.0 + (CELL_SIZE_V / 2.0)
-		var tween = create_tween()
+		var twn = create_tween()
 		if is_instance_valid(piece):
-			tween.tween_property(piece, "position", bump_pos, 0.15)
+			twn.tween_property(piece, "position", bump_pos, 0.15)
 		
 		if not is_instance_valid(target_piece) or target_piece.current_hp <= 0:
 			if is_instance_valid(piece) and piece.current_hp > 0:
@@ -1879,9 +1879,9 @@ func perform_action(piece, target_pos):
 					piece.grid_pos = target_pos
 					board[target_pos] = piece
 					handle_movement_bleed(piece, g_pos, target_pos)
-					tween.tween_property(piece, "position", target_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.15)
+					twn.tween_property(piece, "position", target_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.15)
 				else:
-					tween.tween_property(piece, "position", g_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.15)
+					twn.tween_property(piece, "position", g_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.15)
 				
 				if was_poop and is_player:
 					var r = randf()
@@ -1902,9 +1902,9 @@ func perform_action(piece, target_pos):
 				board[stop_pos] = piece
 				handle_movement_bleed(piece, g_pos, stop_pos)
 				var move_px = stop_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
-				tween.tween_property(piece, "position", move_px, 0.15)
+				twn.tween_property(piece, "position", move_px, 0.15)
 			else:
-				tween.tween_property(piece, "position", g_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.15)
+				twn.tween_property(piece, "position", g_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.15)
 				
 		if is_instance_valid(piece) and piece.current_hp > 0 and piece.piece_type == PieceType.TELEPAWN:
 			var empty_spots = []
@@ -1919,7 +1919,7 @@ func perform_action(piece, target_pos):
 				piece.grid_pos = tp
 				board[tp] = piece
 				handle_movement_bleed(piece, old_gp, tp)
-				tween.tween_property(piece, "position", tp * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.15)
+				twn.tween_property(piece, "position", tp * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.15)
 				show_floating_text(tp, "TELEPORT!", Color.CYAN)
 				end_turn_with_tween(piece, tp, tween, is_player)
 				return
@@ -1943,8 +1943,8 @@ func perform_action(piece, target_pos):
 		board[target_pos] = piece
 		handle_movement_bleed(piece, g_pos, target_pos)
 		
-		var tween = create_tween()
-		tween.tween_property(piece, "position", target_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.3)
+		var twn = create_tween()
+		twn.tween_property(piece, "position", target_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.3)
 		if piece.is_player and piece.artifacts.has("brain_jar") and not piece.get_meta("brain_used_this_turn", false):
 			piece.set_meta("brain_used_this_turn", true)
 			show_floating_text(target_pos, "FREE ACTION!", Color.CYAN)
@@ -2009,12 +2009,12 @@ func check_floor_hazards(_piece):
 
 func is_hazard_cell(_pos):
 	return false
-func end_turn_with_tween(piece, target_pos, tween, was_player = null, skip_turn_change = false):
+func end_turn_with_tween(piece, _target_pos, tween, was_player = null, skip_turn_change = false):
 	var is_player = was_player
 	if is_instance_valid(piece):
 		is_player = piece.is_player
-		tween.tween_callback(func(): check_floor_hazards(piece))
-		tween.tween_callback(func(): check_nightmare_pawns_interaction(piece))
+		twn.tween_callback(func(): check_floor_hazards(piece))
+		twn.tween_callback(func(): check_nightmare_pawns_interaction(piece))
 	if is_player:
 		var clone_died = clone_active and (not is_instance_valid(active_clone_piece) or active_clone_piece.current_hp <= 0)
 		var moved_was_clone = piece != null and piece.has_meta("is_clone")
@@ -2022,7 +2022,7 @@ func end_turn_with_tween(piece, target_pos, tween, was_player = null, skip_turn_
 			normal_move_used = true
 			
 		if clone_active and not clone_died and normal_move_used:
-			tween.tween_callback(func():
+			twn.tween_callback(func():
 				force_clone_move = true
 				selected_piece = active_clone_piece
 				update_info_panel(active_clone_piece.grid_pos)
@@ -2032,7 +2032,7 @@ func end_turn_with_tween(piece, target_pos, tween, was_player = null, skip_turn_
 			)
 		elif not normal_move_used:
 			if clone_active and moved_was_clone:
-				tween.tween_callback(func():
+				twn.tween_callback(func():
 					if is_instance_valid(active_clone_piece):
 						board.erase(active_clone_piece.grid_pos)
 						player_pawns.erase(active_clone_piece)
@@ -2041,13 +2041,13 @@ func end_turn_with_tween(piece, target_pos, tween, was_player = null, skip_turn_
 					active_clone_piece = null
 					force_clone_move = false
 				)
-			tween.tween_callback(func():
+			twn.tween_callback(func():
 				status_label.text = TranslationManager.translate("player_turn", [turn_count])
 				status_label.set("theme_override_colors/font_color", Color.WHITE)
 			)
 		else:
 			if clone_active:
-				tween.tween_callback(func():
+				twn.tween_callback(func():
 					if is_instance_valid(active_clone_piece):
 						board.erase(active_clone_piece.grid_pos)
 						player_pawns.erase(active_clone_piece)
@@ -2060,10 +2060,10 @@ func end_turn_with_tween(piece, target_pos, tween, was_player = null, skip_turn_
 				current_turn = 1
 				status_label.text = "Enemy Turn %d" % turn_count
 				status_label.set("theme_override_colors/font_color", Color.RED)
-				tween.tween_callback(bot_turn)
+				twn.tween_callback(bot_turn)
 	else:
 		if not skip_turn_change:
-			tween.tween_callback(start_player_turn)
+			twn.tween_callback(start_player_turn)
 
 func get_cell_before_target(g_pos: Vector2, target_pos: Vector2) -> Vector2:
 	var diff = target_pos - g_pos
@@ -2282,7 +2282,7 @@ func end_level():
 	
 	for b in bot_pawns:
 		if is_instance_valid(b):
-			var g = b.grid_pos
+			var g_pos_iter = b.grid_pos
 			board.erase(g)
 			b.queue_free()
 	bot_pawns.clear()
@@ -2308,7 +2308,7 @@ func generate_shop():
 		
 	for i in range(3):
 		var pool = [PieceType.PAWN, PieceType.KNIGHT, PieceType.BISHOP, PieceType.ROOK, PieceType.QUEEN, PieceType.TELEPAWN, PieceType.CHECKER, PieceType.NIGHTMARE_PAWN, PieceType.BLOOD_QUEEN]
-		var type = pool[randi() % pool.size()]
+		var _type = pool[randi() % pool.size()]
 		
 		if randf() < 0.5:
 			type = PieceType.SPIKED_PAWN
@@ -2442,7 +2442,7 @@ func start_next_level(node_info):
 	var num_rocks = randi_range(1, 2)
 	var num_poops = randi_range(1, 2)
 	var num_barrels = randi_range(0, 1)
-	var num_bots = min((node_info.floor / 2) + 2, 8)
+	var num_bots = min(int(node_info.floor / 2.0) + 2, 8)
 	
 	if node_info.type == map_manager.NodeType.BOSS:
 		num_rocks = 0; num_poops = 0; num_barrels = 0; num_bots = 0
@@ -2562,7 +2562,7 @@ func spawn_clone_piece(original, target_pos):
 func check_nightmare_pawns_interaction(moved_piece):
 	if not is_instance_valid(moved_piece) or moved_piece.current_hp <= 0: return
 	
-	var orthogonal_dirs = [Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1)]
+	var _orthogonal_dirs = [Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1)]
 	
 	var diagonal_dirs = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]
 	if moved_piece.piece_type == PieceType.NIGHTMARE_PAWN:
@@ -2622,7 +2622,7 @@ func _get_node_pos_map() -> Dictionary:
 	for f in range(map_manager.MAX_FLOORS):
 		var y = MAP_ROWS - 2 - f
 		for n in map_manager.map_data[f]:
-			var x = (MAP_COLS - map_manager.COLS) / 2 + n.col
+			var x = int((MAP_COLS - map_manager.COLS) / 2.0) + n.col
 			m[n.id] = Vector2(x, y)
 	return m
 
@@ -2652,15 +2652,15 @@ func start_map_mode():
 	overlay.queue_redraw()
 	for f in range(map_manager.MAX_FLOORS):
 		for n in map_manager.map_data[f]:
-			var p1 = node_pos_map[n.id] * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
+			var _p1 = node_pos_map[n.id] * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
 			for cid in n.connections:
-				var p2 = node_pos_map[cid] * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
+				var _p2 = node_pos_map[cid] * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
 				
 	# Add lines from starting position if we are at start
 	if map_manager.current_node_id == -1:
 		var p_start = Vector2(2, 13) * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
 		for n in map_manager.map_data[0]:
-			var p2 = node_pos_map[n.id] * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
+			var _p2 = node_pos_map[n.id] * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
 			var line = Line2D.new()
 			line.add_point(p_start)
 			line.add_point(p2)
@@ -2672,9 +2672,9 @@ func start_map_mode():
 			
 	for f in range(map_manager.MAX_FLOORS):
 		for n in map_manager.map_data[f]:
-			var p1 = node_pos_map[n.id] * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
+			var _p1 = node_pos_map[n.id] * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
 			for cid in n.connections:
-				var p2 = node_pos_map[cid] * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
+				var _p2 = node_pos_map[cid] * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
 				var line = Line2D.new()
 				line.add_point(p1)
 				line.add_point(p2)
@@ -2754,10 +2754,10 @@ func trigger_map_node(n):
 	var node_pos_map = _get_node_pos_map()
 	overlay.queue_redraw()
 	var target = node_pos_map[n.id] * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
-	var tween = create_tween()
-	tween.tween_property(map_king, "position", target, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	var twn = create_tween()
+	twn.tween_property(map_king, "position", target, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
 	update_map_scroll()
-	tween.tween_callback(func(): start_map_node(n))
+	twn.tween_callback(func(): start_map_node(n))
 
 func start_map_node(node):
 	level = node.floor + 1

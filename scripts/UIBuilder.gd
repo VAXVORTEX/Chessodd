@@ -198,6 +198,7 @@ static func create_ui(main: Node):
 	right_style.border_color = Color(0.3, 0.35, 0.4)
 	right_hud_panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	right_hud_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	right_hud_panel.custom_minimum_size = Vector2(350, 0)
 	right_hud_panel.z_index = 250
 	main.ui_layer.add_child(right_hud_panel)
 	
@@ -235,6 +236,16 @@ static func create_ui(main: Node):
 	hud_inv_btn.set("theme_override_font_sizes/font_size", 24)
 	hud_inv_btn.pressed.connect(func(): main.toggle_inventory())
 	right_vbox.add_child(hud_inv_btn)
+	
+	var btn_settings = Button.new()
+	btn_settings.text = TranslationManager.translate("settings") if TranslationManager.translate("settings") != "settings" else "Settings / Pause"
+	btn_settings.add_to_group("translateable")
+	btn_settings.set("theme_override_font_sizes/font_size", 24)
+	btn_settings.pressed.connect(func():
+		main.get_tree().paused = true
+		main.settings_panel.show()
+	)
+	right_vbox.add_child(btn_settings)
 	
 	main.game_over_panel = ColorRect.new()
 	main.game_over_panel.color = Color(0, 0, 0, 0.8)
@@ -716,18 +727,7 @@ static func create_ui(main: Node):
 	main.settings_panel = SettingsMenu.new(main)
 	main.ui_layer.add_child(main.settings_panel)
 	
-	# Settings Button INGAME
-	var btn_settings = Button.new()
-	btn_settings.text = "⚙"
-	btn_settings.set("theme_override_font_sizes/font_size", 30)
-	btn_settings.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	btn_settings.position = Vector2(1920 - 60, 10)
-	btn_settings.custom_minimum_size = Vector2(50, 50)
-	btn_settings.pressed.connect(func():
-		main.get_tree().paused = true
-		main.settings_panel.show()
-	)
-	main.ui_layer.add_child(btn_settings)
+
 	
 	# --- GRAVEYARD UI ---
 	main.graveyard_panel = PanelContainer.new()
@@ -738,9 +738,10 @@ static func create_ui(main: Node):
 	g_style.border_width_left = 4
 	g_style.border_color = Color(0.3, 0.35, 0.4)
 	main.graveyard_panel.add_theme_stylebox_override("panel", g_style)
-	main.graveyard_panel.set_anchors_and_offsets_preset(Control.PRESET_RIGHT_WIDE)
+	main.graveyard_panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	main.graveyard_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	main.graveyard_panel.custom_minimum_size = Vector2(220, 0)
+	main.graveyard_panel.position = Vector2(1920 - 350, 160)
+	main.graveyard_panel.custom_minimum_size = Vector2(350, 600)
 	main.ui_layer.add_child(main.graveyard_panel)
 	
 	var gy_vbox = VBoxContainer.new()
