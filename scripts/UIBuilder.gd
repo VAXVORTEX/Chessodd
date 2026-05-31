@@ -748,6 +748,7 @@ static func create_ui(main: Node):
 	
 	var egy_scroll = ScrollContainer.new()
 	egy_scroll.custom_minimum_size = Vector2(0, 140)
+	egy_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	egy_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	egy_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	gy_vbox.add_child(egy_scroll)
@@ -765,6 +766,7 @@ static func create_ui(main: Node):
 	
 	var gy_scroll = ScrollContainer.new()
 	gy_scroll.custom_minimum_size = Vector2(0, 140)
+	gy_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	gy_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	gy_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	gy_vbox.add_child(gy_scroll)
