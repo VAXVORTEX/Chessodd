@@ -677,7 +677,7 @@ func update_graveyard_ui():
 	if enemy_graveyard_container:
 		populate_gy_container(enemy_graveyard_container, enemy_graveyard)
 	if graveyard_panel:
-		graveyard_panel.show()
+		graveyard_panel.visible = (state != GameState.MAP and state != GameState.MAIN_MENU)
 
 func update_ui():
 	coins_label.text = "Coins: %d" % coins
@@ -2385,6 +2385,7 @@ func _get_node_pos_map() -> Dictionary:
 
 func start_map_mode():
 	state = GameState.MAP
+	if graveyard_panel: graveyard_panel.hide()
 	graveyard.clear()
 	enemy_graveyard.clear()
 	for lbl in get_tree().get_nodes_in_group("grid_labels"): lbl.hide()

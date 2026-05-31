@@ -76,7 +76,7 @@ func _get_drag_data(at_position):
 
 func _can_drop_data(at_position, data):
 	var main = get_tree().get_first_node_in_group("main")
-	if main and main.state != main.GameState.SHOP and main.state != main.GameState.MAP: return false
+	if main and main.state != main.GameState.SHOP and main.state != main.GameState.MAP and not main.inv_panel.visible: return false
 	return data is DragSlot and data != self
 
 func _drop_data(_at_position, data):
