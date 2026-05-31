@@ -237,15 +237,7 @@ static func create_ui(main: Node):
 	hud_inv_btn.pressed.connect(func(): main.toggle_inventory())
 	right_vbox.add_child(hud_inv_btn)
 	
-	var btn_settings = Button.new()
-	btn_settings.text = TranslationManager.translate("settings") if TranslationManager.translate("settings") != "settings" else "Settings / Pause"
-	btn_settings.add_to_group("translateable")
-	btn_settings.set("theme_override_font_sizes/font_size", 24)
-	btn_settings.pressed.connect(func():
-		main.get_tree().paused = true
-		main.settings_panel.show()
-	)
-	right_vbox.add_child(btn_settings)
+
 	
 	main.game_over_panel = ColorRect.new()
 	main.game_over_panel.color = Color(0, 0, 0, 0.8)

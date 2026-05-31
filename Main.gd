@@ -653,10 +653,15 @@ func populate_gy_container(container: Control, list: Array):
 		child.queue_free()
 	for dead in list:
 		var tex_rect = TextureRect.new()
-		if typeof(dead.tex) == TYPE_STRING and dead.tex != "":
-			tex_rect.texture = load(dead.tex)
+		if dead.has("type"):
+			tex_rect.texture = PieceData.get_piece_texture(dead.type, dead.is_player)
+		elif typeof(dead.tex) == TYPE_STRING and dead.tex != "" and not dead.tex.begins_with("<"):
+			if ResourceLoader.exists(dead.tex):
+				tex_rect.texture = load(dead.tex)
 		elif typeof(dead.tex) == TYPE_OBJECT:
 			tex_rect.texture = dead.tex
+		if tex_rect.texture == null:
+			tex_rect.texture = preload("res://images/pawn.png")
 		tex_rect.custom_minimum_size = Vector2(64, 64)
 		tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		tex_rect.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -2747,6 +2752,7 @@ func start_map_mode():
 	if map_manager.current_node_id != -1 and node_pos_map.has(map_manager.current_node_id):
 		king_gp = node_pos_map[map_manager.current_node_id]
 	map_king.position = king_gp * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
+	update_map_scroll()
 
 func trigger_map_node(n):
 	if not map_manager.can_visit(n.id): return

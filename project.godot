@@ -14,6 +14,10 @@ config/name="Mini Chess"
 run/main_scene="res://Main.tscn"
 config/features=PackedStringArray("4.6")
 
+[autoload]
+
+DebugOverlay="*res://scripts/DebugOverlay.gd"
+
 [display]
 
 window/size/viewport_width=1920
@@ -24,7 +28,3 @@ window/stretch/mode="canvas_items"
 [rendering]
 
 textures/vram_compression/import_etc2_astc=true
-
-[autoload]
-
-DebugOverlay="*res://scripts/DebugOverlay.gd"

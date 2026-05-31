@@ -57,6 +57,11 @@ func _init(_main: Node):
 	btn_close.pressed.connect(_on_close)
 	vbox.add_child(btn_close)
 
+	visibility_changed.connect(func():
+		if visible and is_instance_valid(main) and is_instance_valid(main.ui_layer):
+			main.ui_layer.move_child(self, -1)
+	)
+	
 func _build_audio_tab():
 	var tab = VBoxContainer.new()
 	tab.name = "Audio"
