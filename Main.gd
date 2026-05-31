@@ -664,26 +664,25 @@ func populate_gy_container(container: Control, list: Array):
 			tex_rect.texture = preload("res://images/pawn.png")
 		tex_rect.custom_minimum_size = Vector2(64, 64)
 		tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		tex_rect.mouse_filter = Control.MOUSE_FILTER_STOP
-		
-		var hl = ColorRect.new()
-		hl.color = Color(0.2, 0.5, 1.0, 0.4)
-		hl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		hl.hide()
-		tex_rect.add_child(hl)
 		
 		tex_rect.pivot_offset = Vector2(32, 32)
 		tex_rect.mouse_entered.connect(func():
-			hl.show()
+			tex_rect.modulate = Color(1.2, 1.2, 1.2, 1.0)
 			tex_rect.z_index = 10
 			var tween = create_tween()
 			tween.tween_property(tex_rect, "scale", Vector2(1.15, 1.15), 0.1)
 		)
 		tex_rect.mouse_exited.connect(func():
-			hl.hide()
+			tex_rect.modulate = Color.WHITE
 			tex_rect.z_index = 0
 			var tween = create_tween()
 			tween.tween_property(tex_rect, "scale", Vector2(1.0, 1.0), 0.1)
+		)
+		tex_rect.gui_input.connect(func(event):
+			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+				show_dead_piece_info(dead)
 		)
 		container.add_child(tex_rect)
 
@@ -2115,6 +2114,58 @@ func bot_turn():
 	if not moved:
 		start_player_turn()
 
+func show_dead_piece_info(dead):
+	info_panel.set_meta("viewed_piece", dead)
+	info_panel.show()
+	info_item_slots.show()
+	
+	if info_statuses:
+		for c in info_statuses.get_children():
+			c.queue_free()
+	
+	var title = dead.get("name", "Unknown")
+	var desc = ""
+	var max_hp = dead.get("max_hp", 0)
+	
+	var data = PieceData.registry.get(dead.type)
+	if data:
+		desc = data.get("desc", "")
+	
+	info_name.text = title
+	info_stats.modulate.a = 1
+	info_item_slots.modulate.a = 1
+	
+	info_stats.text = "HP: 0/%d\nATK: 0" % [max_hp]
+	if dead.is_player:
+		info_stats.set("theme_override_colors/font_color", Color(0.4, 0.8, 1.0))
+	else:
+		info_stats.set("theme_override_colors/font_color", Color(1.0, 0.4, 0.4))
+		
+	info_desc.text = desc
+	
+	if dead.has("tex"):
+		if typeof(dead.tex) == TYPE_OBJECT:
+			info_tex.texture = dead.tex
+		elif typeof(dead.tex) == TYPE_STRING and ResourceLoader.exists(dead.tex):
+			info_tex.texture = load(dead.tex)
+		else:
+			info_tex.texture = PieceData.get_piece_texture(dead.type, dead.is_player)
+	else:
+		info_tex.texture = PieceData.get_piece_texture(dead.type, dead.is_player)
+	
+	var ts = info_tex.texture.get_size() if info_tex.texture else Vector2(1,1)
+	if ts.x > 0 and ts.y > 0:
+		var sf = min((CELL_SIZE_V.x * 0.9) / ts.x, (CELL_SIZE_V.y * 0.9) / ts.y)
+		info_tex.scale = Vector2(sf, sf)
+	
+	for i in range(3):
+		if i < info_item_slots.get_child_count():
+			var slot = info_item_slots.get_child(i)
+			if dead.has("artifacts") and i < dead.artifacts.size():
+				slot.texture = load("res://images/items/%s.png" % dead.artifacts[i])
+			else:
+				slot.texture = null
+				
 func update_info_panel(g_pos):
 	var found = null
 	if board.has(g_pos): found = board[g_pos]

@@ -196,7 +196,7 @@ static func create_ui(main: Node):
 	right_style.border_width_left = 2
 	right_style.border_width_bottom = 2
 	right_style.border_color = Color(0.3, 0.35, 0.4)
-	right_hud_panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	right_hud_panel.set_anchors_preset(Control.PRESET_RIGHT_WIDE)
 	right_hud_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	right_hud_panel.custom_minimum_size = Vector2(350, 0)
 	right_hud_panel.z_index = 250
@@ -276,7 +276,7 @@ static func create_ui(main: Node):
 	main.pause_panel = ColorRect.new()
 	main.pause_panel.color = Color(0, 0, 0, 0.8)
 	main.pause_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	main.pause_panel.z_index = 350
+	main.pause_panel.z_index = 1000
 	main.pause_panel.hide()
 	main.pause_panel.process_mode = Node.PROCESS_MODE_ALWAYS
 	main.ui_layer.add_child(main.pause_panel)
@@ -730,7 +730,8 @@ static func create_ui(main: Node):
 	g_style.border_width_left = 4
 	g_style.border_color = Color(0.3, 0.35, 0.4)
 	main.graveyard_panel.add_theme_stylebox_override("panel", g_style)
-	main.graveyard_panel.custom_minimum_size = Vector2(0, 400)
+	main.graveyard_panel.custom_minimum_size = Vector2(0, 0)
+	main.graveyard_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	main.graveyard_panel.hide()
 	right_vbox.add_child(main.graveyard_panel)
 	
