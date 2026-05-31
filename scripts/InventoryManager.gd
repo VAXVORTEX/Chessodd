@@ -258,14 +258,14 @@ func update_inventory_selection():
 	
 	var desc = ""
 	match p.piece_type:
-		PieceType.PAWN: desc = "Moves 1 step forward. Attacks diagonally forward."
-		PieceType.KNIGHT: desc = "Moves in an 'L' shape. Can jump over other pieces."
-		PieceType.BISHOP: desc = "Moves diagonally any number of spaces."
-		PieceType.ROOK: desc = "Moves horizontally or vertically any number of spaces."
-		PieceType.QUEEN: desc = "Moves in any direction any number of spaces."
-		PieceType.KING: desc = "Moves 1 step in any direction. If King dies, you lose."
-		PieceType.SPIKED_PAWN: desc = "Melee attackers take 1 damage."
-		PieceType.TELEPAWN: desc = "Moves 1 step horizontally and vertically. Attacks diagonally forward. Teleports randomly after attacking."
+		main.PieceType.PAWN: desc = "Moves 1 step forward. Attacks diagonally forward."
+		main.PieceType.KNIGHT: desc = "Moves in an 'L' shape. Can jump over other pieces."
+		main.PieceType.BISHOP: desc = "Moves diagonally any number of spaces."
+		main.PieceType.ROOK: desc = "Moves horizontally or vertically any number of spaces."
+		main.PieceType.QUEEN: desc = "Moves in any direction any number of spaces."
+		main.PieceType.KING: desc = "Moves 1 step in any direction. If King dies, you lose."
+		main.PieceType.SPIKED_PAWN: desc = "Melee attackers take 1 damage."
+		main.PieceType.TELEPAWN: desc = "Moves 1 step horizontally and vertically. Attacks diagonally forward. Teleports randomly after attacking."
 	main.inv_piece_desc.text = desc
 	
 	main.inv_piece_stats.text = "HP: %d/%d  |  ATK: %d" % [p.current_hp, p.max_hp, p.attack_damage]
@@ -277,7 +277,7 @@ func update_inventory_selection():
 	while arts.size() < 3:
 		arts.append("")
 	var is_mirror = arts[1] == "dark_mirror"
-	var is_checker = p.piece_type == PieceType.CHECKER
+	var is_checker = p.piece_type == main.PieceType.CHECKER
 	for i in range(3):
 		if is_checker:
 			continue
