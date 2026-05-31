@@ -36,6 +36,7 @@ var normal_move_used = false
 
 var map_manager = preload("res://scripts/MapManager.gd").new()
 var inventory_manager = preload("res://scripts/InventoryManager.gd").new(self)
+var vfx_manager = preload("res://scripts/VisualEffects.gd").new(self)
 var event_manager = preload("res://scripts/EventManager.gd").new(self)
 var shop_manager = preload("res://scripts/ShopManager.gd").new(self)
 var map_king = null
@@ -945,7 +946,7 @@ func _input(event):
 					
 				bottle_user_piece.current_hp += 2
 				bottle_user_piece.attack_damage += 1
-				show_floating_text(bottle_user_piece.grid_pos, "DRANK ALLY!", Color.GREEN)
+				vfx_manager.show_floating_text(bottle_user_piece.grid_pos, "DRANK ALLY!", Color.GREEN)
 				take_damage(t, 9999)
 				bottle_user_piece.bottle_used_this_level = true
 				var idx = bottle_user_piece.artifacts.find("bottle")
@@ -1017,7 +1018,7 @@ func _input(event):
 								enemies.append(b.grid_pos)
 						if enemies.size() > 0:
 							var t = enemies[randi() % enemies.size()]
-							show_floating_text(g_pos, TranslationManager.translate("lazer"), Color.RED)
+							vfx_manager.show_floating_text(g_pos, TranslationManager.translate("lazer"), Color.RED)
 							var from_px = g_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
 							var to_px = t * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
 							var line = Line2D.new()
@@ -1034,7 +1035,7 @@ func _input(event):
 							selected_piece.set_meta("finger_used_this_turn", true)
 							update_piece_slots(selected_piece)
 						else:
-							show_floating_text(g_pos, TranslationManager.translate("no_targets"), Color.GRAY)
+							vfx_manager.show_floating_text(g_pos, TranslationManager.translate("no_targets"), Color.GRAY)
 					else:
 						target.is_player = true
 						var moves = get_valid_moves(target)
@@ -1044,12 +1045,12 @@ func _input(event):
 							if board.has(m) and not board[m].is_player and not board[m].has_meta("is_obstacle"): valid_targets.append(m)
 						if valid_targets.size() > 0:
 							var t = valid_targets[randi() % valid_targets.size()]
-							show_floating_text(g_pos, TranslationManager.translate("controlled"), Color.MAGENTA)
+							vfx_manager.show_floating_text(g_pos, TranslationManager.translate("controlled"), Color.MAGENTA)
 							selected_piece.set_meta("finger_used_this_turn", true)
 							update_piece_slots(selected_piece)
 							perform_action(target, t)
 						else:
-							show_floating_text(g_pos, TranslationManager.translate("no_targets"), Color.GRAY)
+							vfx_manager.show_floating_text(g_pos, TranslationManager.translate("no_targets"), Color.GRAY)
 					state = GameState.PLAYING
 					status_label.text = TranslationManager.translate("player_turn", [turn_count])
 					status_label.set("theme_override_colors/font_color", Color.WHITE)
@@ -1078,7 +1079,7 @@ func _input(event):
 					var blocked = not is_inside(push_pos) or board.has(push_pos)
 					
 					if blocked:
-						show_floating_text(g_pos, "COLLISION!", Color.RED)
+						vfx_manager.show_floating_text(g_pos, "COLLISION!", Color.RED)
 						take_damage(target, 2, selected_piece)
 						if is_inside(push_pos) and board.has(push_pos):
 							var standing = board[push_pos]
@@ -1091,7 +1092,7 @@ func _input(event):
 						tween.tween_property(target, "position", bump_px, 0.1)
 						tween.tween_property(target, "position", orig_px, 0.1)
 					else:
-						show_floating_text(g_pos, "PUSH!", Color.ORANGE)
+						vfx_manager.show_floating_text(g_pos, "PUSH!", Color.ORANGE)
 						take_damage(target, 1, selected_piece)
 						if is_instance_valid(target) and target.current_hp > 0:
 							board.erase(g_pos)
@@ -1124,7 +1125,7 @@ func _input(event):
 				if is_orthogonal and dist > 0 and dist <= 3 and not target.has_meta("is_obstacle"):
 					if state == GameState.TARGETING_BLOOD_KNIFE:
 						target.bleed_stacks += 3
-						show_floating_text(g_pos, "BLEED +3!", Color.RED)
+						vfx_manager.show_floating_text(g_pos, "BLEED +3!", Color.RED)
 						selected_piece.set_meta("blood_knife_used_this_turn", true)
 					else:
 						if target.piece_type == PieceType.BOMB_BARREL:
@@ -1133,10 +1134,10 @@ func _input(event):
 							var dmg = target.bleed_stacks * 2
 							take_damage(target, dmg)
 							target.bleed_stacks = 0
-							show_floating_text(g_pos, "CAUTERIZED!", Color.MAGENTA)
+							vfx_manager.show_floating_text(g_pos, "CAUTERIZED!", Color.MAGENTA)
 						else:
 							target.burn_stacks += 2
-							show_floating_text(g_pos, "BURN +2!", Color.ORANGE)
+							vfx_manager.show_floating_text(g_pos, "BURN +2!", Color.ORANGE)
 						selected_piece.set_meta("torch_used_this_turn", true)
 					
 					inventory_manager.recalc_pawn_stats(selected_piece)
@@ -1304,33 +1305,9 @@ func _on_overlay_draw():
 				for m in moves:
 					overlay.draw_rect(Rect2(m * CELL_SIZE_V, CELL_SIZE_V), Color(1, 0, 0, 0.3))
 		
-func show_floating_text(grid_pos, text, color, align = "center"):
-	var lbl = Label.new()
-	lbl.text = text
-	lbl.set("theme_override_colors/font_color", color)
-	lbl.set("theme_override_colors/font_outline_color", Color.BLACK)
-	lbl.set("theme_override_constants/outline_size", 3)
-	lbl.set("theme_override_font_sizes/font_size", 32)
-	var offset_x = 0
-	if align == "left": offset_x = -40
-	elif align == "right": offset_x = 40
-	lbl.position = grid_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0 - Vector2(20 + offset_x, 40))
-	board_node.add_child(lbl)
-	
-	var tween = create_tween()
-	tween.tween_property(lbl, "position", lbl.position + Vector2(0, -50), 1.0)
-	tween.parallel().tween_property(lbl, "modulate:a", 0.0, 1.0)
-	tween.tween_callback(lbl.queue_free)
-
-func shake_board(intensity: float, duration: float):
-	var tween = create_tween()
-	for i in range(4):
-		tween.tween_property(board_node, "position", BOARD_OFFSET + Vector2(randf_range(-intensity, intensity), randf_range(-intensity, intensity)), duration/5.0)
-	tween.tween_property(board_node, "position", BOARD_OFFSET, duration/5.0)
-
 func take_damage(piece, amt, attacker = null):
 	if amt > 0:
-		shake_board(15.0, 0.25)
+		vfx_manager.shake_board(15.0, 0.25)
 
 	if amt < 9999 and piece.has_meta("stacked_checker_count") and piece.get_meta("stacked_checker_count") > 0:
 		var count = piece.get_meta("stacked_checker_count")
@@ -1342,16 +1319,16 @@ func take_damage(piece, amt, attacker = null):
 			s.queue_free()
 			piece.offset = Vector2.ZERO
 			
-		show_floating_text(piece.grid_pos, "SHIELD BROKE!", Color.WHITE)
+		vfx_manager.show_floating_text(piece.grid_pos, "SHIELD BROKE!", Color.WHITE)
 		update_info_panel(piece.grid_pos)
-		shake_board(10.0, 0.2)
+		vfx_manager.shake_board(10.0, 0.2)
 		amt -= 1
 		if amt <= 0: return
 		
 	var hp = piece.current_hp - amt
 	piece.current_hp = hp
 	
-	show_floating_text(piece.grid_pos, "-%d" % amt, Color.RED, "left")
+	vfx_manager.show_floating_text(piece.grid_pos, "-%d" % amt, Color.RED, "left")
 	update_ui()
 	
 	if piece == selected_piece:
@@ -1368,7 +1345,7 @@ func take_damage(piece, amt, attacker = null):
 			if p_name.find("blood") != -1:
 				heal_amt = 2
 			attacker.current_hp += heal_amt
-			show_floating_text(attacker.grid_pos, "+%d HP" % heal_amt, Color.RED)
+			vfx_manager.show_floating_text(attacker.grid_pos, "+%d HP" % heal_amt, Color.RED)
 			update_ui()
 			
 		if piece.piece_type == PieceType.BOSS_DEADKING:
@@ -1416,7 +1393,7 @@ func take_damage(piece, amt, attacker = null):
 								tween.parallel().tween_property(obstacle, "position", push_t * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.2)
 						else:
 							take_damage(obstacle, 1)
-						show_floating_text(step_pos, "BUMP!", Color.RED)
+						vfx_manager.show_floating_text(step_pos, "BUMP!", Color.RED)
 			
 			# Only place Head on board if its final cell is free. If it pushed someone from its final cell, it is free now.
 			if not board.has(target_head_pos):
@@ -1437,13 +1414,13 @@ func take_damage(piece, amt, attacker = null):
 					head.queue_free()
 					bot_pawns.erase(head)
 			
-			show_floating_text(g, "PHASE 2!", Color.RED)
+			vfx_manager.show_floating_text(g, "PHASE 2!", Color.RED)
 			return
 			
 		elif piece.piece_type == PieceType.BOSS_HEAD:
 			# Drop the item
 			unassigned_items.append("deadking_head")
-			show_floating_text(piece.grid_pos, "GOT DEAD KING'S HEAD!", Color.GOLD)
+			vfx_manager.show_floating_text(piece.grid_pos, "GOT DEAD KING'S HEAD!", Color.GOLD)
 			# Kill the body too
 			for p in bot_pawns:
 				if is_instance_valid(p) and p.piece_type == PieceType.BOSS_BODY:
@@ -1504,7 +1481,7 @@ func take_damage(piece, amt, attacker = null):
 		board.erase(g)
 			
 		if not piece.is_player and piece.piece_type != PieceType.POOP:
-			spawn_blood_puddle(g)
+			vfx_manager.spawn_blood_puddle(g)
 			
 		var dead_tex = PieceData.get_piece_texture(piece.piece_type, piece.is_player)
 		var dead_title = PieceData.registry.get(piece.piece_type, {}).get("title", "?")
@@ -1537,15 +1514,6 @@ func trigger_game_over(msg):
 	status_label.set("theme_override_colors/font_color", Color.RED)
 	game_over_panel.show()
 
-func spawn_blood_puddle(pos):
-	var puddle = ColorRect.new()
-	puddle.size = (CELL_SIZE_V * 0.7)
-	puddle.position = pos * CELL_SIZE_V + (CELL_SIZE_V * 0.15)
-	puddle.color = Color(0.6, 0.0, 0.0, 0.7)
-	puddle.z_index = -3
-	board_node.add_child(puddle)
-	blood_puddles.append({"node": puddle, "pos": pos})
-
 func perform_action(piece, target_pos):
 	var g_pos = piece.grid_pos
 	var is_player = piece.is_player
@@ -1556,7 +1524,7 @@ func perform_action(piece, target_pos):
 	if target_piece:
 		if target_piece.piece_type == PieceType.CHECKER and target_piece.is_player == piece.is_player:
 			if piece.has_meta("is_clone"):
-				show_floating_text(piece.grid_pos, "SPLAT!", Color.AQUA)
+				vfx_manager.show_floating_text(piece.grid_pos, "SPLAT!", Color.AQUA)
 				take_damage(piece, 9999)
 				tween = create_tween()
 				end_turn_with_tween(null, target_pos, tween, piece.is_player)
@@ -1567,7 +1535,7 @@ func perform_action(piece, target_pos):
 			piece.set_meta("stacked_checker_count", count)
 			piece.attack_damage += 1
 			
-			show_floating_text(target_pos, "+1 RANGE (Checker Stacked)", Color.YELLOW)
+			vfx_manager.show_floating_text(target_pos, "+1 RANGE (Checker Stacked)", Color.YELLOW)
 			
 			board.erase(target_pos)
 			if target_piece.is_player:
@@ -1603,7 +1571,7 @@ func perform_action(piece, target_pos):
 		var was_poop = target_piece.has_meta("is_obstacle") and target_piece.piece_type == PieceType.POOP
 		
 		if piece.has_meta("is_clone") and was_poop:
-			show_floating_text(piece.grid_pos, TranslationManager.translate("splat"), Color.BROWN)
+			vfx_manager.show_floating_text(piece.grid_pos, TranslationManager.translate("splat"), Color.BROWN)
 			take_damage(piece, 9999)
 			tween = create_tween()
 			end_turn_with_tween(null, target_pos, tween, piece.is_player)
@@ -1613,11 +1581,11 @@ func perform_action(piece, target_pos):
 		
 		if is_instance_valid(piece) and piece.artifacts.has("shark_tooth") and is_instance_valid(target_piece) and target_piece.current_hp > 0:
 			target_piece.bleed_stacks += 1
-			show_floating_text(target_pos, TranslationManager.translate("bleed"), Color.RED)
+			vfx_manager.show_floating_text(target_pos, TranslationManager.translate("bleed"), Color.RED)
 		
 		if is_instance_valid(target_piece) and target_piece.has_spikes:
 			take_damage(piece, 1)
-			show_floating_text(g_pos, TranslationManager.translate("spiked"), Color.RED)
+			vfx_manager.show_floating_text(g_pos, TranslationManager.translate("spiked"), Color.RED)
 			
 		var bump_pos = (g_pos * CELL_SIZE_V + target_pos * CELL_SIZE_V) / 2.0 + (CELL_SIZE_V / 2.0)
 		tween = create_tween()
@@ -1628,7 +1596,7 @@ func perform_action(piece, target_pos):
 			if is_instance_valid(piece) and piece.current_hp > 0:
 				if piece.artifacts.has("deadking_head"):
 					piece.current_hp += 1
-					show_floating_text(piece.grid_pos, "+1 HP", Color.GREEN)
+					vfx_manager.show_floating_text(piece.grid_pos, "+1 HP", Color.GREEN)
 					if piece == selected_piece: update_info_panel(piece.grid_pos)
 				
 				if not board.has(target_pos) or board[target_pos] == target_piece:
@@ -1646,10 +1614,10 @@ func perform_action(piece, target_pos):
 						var c = randi_range(1, 3)
 						coins += c
 						update_ui()
-						show_floating_text(target_pos, "+%d Coins" % c, Color(1, 0.8, 0))
+						vfx_manager.show_floating_text(target_pos, "+%d Coins" % c, Color(1, 0.8, 0))
 					else:
 						piece.current_hp += 1
-						show_floating_text(target_pos, "+1 HP", Color(0.2, 1, 0.2))
+						vfx_manager.show_floating_text(target_pos, "+1 HP", Color(0.2, 1, 0.2))
 					
 		else:
 			var stop_pos = get_cell_before_target(g_pos, target_pos)
@@ -1677,14 +1645,14 @@ func perform_action(piece, target_pos):
 				board[tp] = piece
 				handle_movement_bleed(piece, old_gp, tp)
 				tween.tween_property(piece, "position", tp * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.15)
-				show_floating_text(tp, "TELEPORT!", Color.CYAN)
+				vfx_manager.show_floating_text(tp, "TELEPORT!", Color.CYAN)
 				end_turn_with_tween(piece, tp, tween, is_player)
 				return
 				
 		if is_instance_valid(piece) and piece.current_hp > 0:
 			if piece.is_player and piece.artifacts.has("brain_jar") and not piece.get_meta("brain_used_this_turn", false):
 				piece.set_meta("brain_used_this_turn", true)
-				show_floating_text(target_pos, "FREE ACTION!", Color.CYAN)
+				vfx_manager.show_floating_text(target_pos, "FREE ACTION!", Color.CYAN)
 				normal_move_used = false
 				selected_piece = null
 				overlay.queue_redraw()
@@ -1704,7 +1672,7 @@ func perform_action(piece, target_pos):
 		tween.tween_property(piece, "position", target_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.3)
 		if piece.is_player and piece.artifacts.has("brain_jar") and not piece.get_meta("brain_used_this_turn", false):
 			piece.set_meta("brain_used_this_turn", true)
-			show_floating_text(target_pos, "FREE ACTION!", Color.CYAN)
+			vfx_manager.show_floating_text(target_pos, "FREE ACTION!", Color.CYAN)
 			normal_move_used = false
 			selected_piece = null
 			overlay.queue_redraw()
@@ -1724,7 +1692,7 @@ func handle_movement_bleed(piece, start_pos, target_pos):
 	if bleed_dmg > 0:
 		take_damage(piece, bleed_dmg, null)
 		piece.bleed_stacks -= bleed_dmg
-		show_floating_text(target_pos, "BLEED -%d" % bleed_dmg, Color.RED)
+		vfx_manager.show_floating_text(target_pos, "BLEED -%d" % bleed_dmg, Color.RED)
 		
 	if piece.bleed_stacks > 0 or bleed_dmg > 0:
 		var last_idx = randi() % 3
@@ -1743,13 +1711,13 @@ func tick_statuses(is_player_turn):
 		
 		if p.burn_stacks > 0:
 			take_damage(p, p.burn_stacks, null)
-			show_floating_text(p.grid_pos, "BURN -%d" % p.burn_stacks, Color.ORANGE)
+			vfx_manager.show_floating_text(p.grid_pos, "BURN -%d" % p.burn_stacks, Color.ORANGE)
 			p.burn_stacks -= 1
 			if p.burn_stacks < 0: p.burn_stacks = 0
 			
 		if p.is_poisoned and p.is_player == is_player_turn:
 			take_damage(p, 1, null)
-			show_floating_text(p.grid_pos, "POISON -1", Color.GREEN)
+			vfx_manager.show_floating_text(p.grid_pos, "POISON -1", Color.GREEN)
 			
 	var to_remove = []
 	for pos in blood_hazards.keys():
@@ -2388,7 +2356,7 @@ func spawn_clone_piece(original, target_pos):
 	clone_active = true
 	active_clone_piece = clone
 	
-	show_floating_text(target_pos, "CLONED!", Color.CYAN)
+	vfx_manager.show_floating_text(target_pos, "CLONED!", Color.CYAN)
 
 func check_nightmare_pawns_interaction(moved_piece):
 	if not is_instance_valid(moved_piece) or moved_piece.current_hp <= 0: return
@@ -2402,7 +2370,7 @@ func check_nightmare_pawns_interaction(moved_piece):
 			if board.has(adj_pos):
 				var adj_piece = board[adj_pos]
 				if is_instance_valid(adj_piece) and adj_piece != moved_piece and not adj_piece.has_meta("is_obstacle"):
-					show_floating_text(moved_piece.grid_pos, "NIGHTMARE STRIKE!", Color.DARK_RED)
+					vfx_manager.show_floating_text(moved_piece.grid_pos, "NIGHTMARE STRIKE!", Color.DARK_RED)
 					take_damage(adj_piece, 1, moved_piece)
 	else:
 		if moved_piece.has_meta("is_obstacle"): return
@@ -2411,7 +2379,7 @@ func check_nightmare_pawns_interaction(moved_piece):
 			if board.has(adj_pos):
 				var adj_piece = board[adj_pos]
 				if is_instance_valid(adj_piece) and adj_piece.piece_type == PieceType.NIGHTMARE_PAWN:
-					show_floating_text(adj_piece.grid_pos, "NIGHTMARE STRIKE!", Color.DARK_RED)
+					vfx_manager.show_floating_text(adj_piece.grid_pos, "NIGHTMARE STRIKE!", Color.DARK_RED)
 					take_damage(moved_piece, 1, adj_piece)
 					if not is_instance_valid(moved_piece) or moved_piece.current_hp <= 0:
 						break
@@ -2615,7 +2583,7 @@ func start_map_node(node):
 		map_manager.NodeType.TREASURE:
 			var bonus = randi_range(10, 20)
 			coins += bonus
-			show_floating_text(Vector2(2, 4), "+%d Coins!" % bonus, Color.GOLD)
+			vfx_manager.show_floating_text(Vector2(2, 4), "+%d Coins!" % bonus, Color.GOLD)
 			update_ui()
 			var t = create_tween()
 			t.tween_interval(1.2)

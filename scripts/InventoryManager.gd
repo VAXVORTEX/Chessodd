@@ -83,11 +83,11 @@ func swap_items(src_type, src_idx, dst_type, dst_idx):
 	if item_src == "": return
 	
 	if p.piece_type == main.PieceType.CHECKER:
-		main.show_floating_text(p.grid_pos if is_instance_valid(p) else Vector2.ZERO, "CANNOT EQUIP ON CHECKER!", Color.RED)
+		main.vfx_manager.show_floating_text(p.grid_pos if is_instance_valid(p) else Vector2.ZERO, "CANNOT EQUIP ON CHECKER!", Color.RED)
 		return
 		
 	if dst_type == "piece" and (dst_idx == 0 or dst_idx == 2) and arts[1] == "dark_mirror":
-		main.show_floating_text(p.grid_pos if is_instance_valid(p) else Vector2.ZERO, "SLOT LOCKED!", Color.RED)
+		main.vfx_manager.show_floating_text(p.grid_pos if is_instance_valid(p) else Vector2.ZERO, "SLOT LOCKED!", Color.RED)
 		return
 		
 	if item_src == "dark_mirror" and dst_type == "piece":
