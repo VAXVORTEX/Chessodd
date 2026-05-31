@@ -1,7 +1,7 @@
 72322a848ab928aa5c89f0cb78209805
-::res://::1780186078
+::res://::1780186683
 export_presets.cfg::TextFile::-1::1780003218::0::1::::<><><>0<>0<><>::
-Main.gd::GDScript::536737830262157081::1780185828::0::1::::Main<>Node2D<><>0<>0<><>::
+Main.gd::GDScript::536737830262157081::1780186422::0::1::::Main<>Node2D<><>0<>0<><>::
 Main.tscn::PackedScene::6164277545058517::1780003218::0::1::::<><><>0<>0<><>::uid://hv881wi8dqm0::::res://Main.gd
 MainMenu.tscn::PackedScene::5669073177269341118::1780003218::0::1::::<><><>0<>0<><>::res://scripts/MainMenu.gd
 output.log::TextFile::-1::1780003218::0::1::::<><><>0<>0<><>::
@@ -90,7 +90,7 @@ torch.png::CompressedTexture2D::2542918940064107484::1780062685::1780063071::0::
 torch.svg::CompressedTexture2D::3336466586367009801::1780063427::1780063497::1::::<><><>0<>0<>15b0e5e80fd990d68071573cdaf9b35d<>res://.godot/imported/torch.svg-66a9380f97ec7539d648a446c22a4d44.ctex::
 trapdoor.svg::CompressedTexture2D::1415982604763802207::1780003218::1780003316::1::::<><><>0<>0<>808ac7ff757ae4f7e20e452895519db2<>res://.godot/imported/trapdoor.svg-386c7b5cf58d51bb9c6953e878231253.ctex::
 treasury.png::CompressedTexture2D::1277109551487101532::1780009784::1780010124::1::::<><><>0<>0<>191740877ff86b5b7b8337ce83a41ffc<>res://.godot/imported/treasury.png-efae4486d5a492a0d6752160ee99d60c.ctex::
-::res://scratch/::1780003231
+::res://scratch/::1780186441
 ::res://scripts/::1780177214
 BossEntity.gd::GDScript::3899817797429303461::1780003218::0::1::::BossEntity<>Entity<><>0<>0<><>::
 Clouds.gdshader::Shader::9006236186834939743::1780183541::0::1::::<><><>0<>0<><>::
@@ -107,5 +107,5 @@ MovementRules.gd::GDScript::1884626296412203260::1780153031::0::1::::MovementRul
 PieceData.gd::GDScript::9197695325133698150::1780177663::0::1::::PieceData<>RefCounted<><>0<>0<><>::
 SaveManager.gd::GDScript::1449600648298893166::1780174815::0::1::::SaveManager<>RefCounted<><>0<>0<><>::
 ShopManager.gd::GDScript::9075694876165508696::1780154889::0::1::::ShopManager<>RefCounted<><>0<>0<><>::
-TranslationManager.gd::GDScript::8532815870570682080::1780177162::0::1::::TranslationManager<>RefCounted<><>0<>0<><>::
-UIBuilder.gd::GDScript::8999472347191260665::1780185084::0::1::::UIBuilder<>RefCounted<><>0<>0<><>::
+TranslationManager.gd::GDScript::8532815870570682080::1780186292::0::1::::TranslationManager<>RefCounted<><>0<>0<><>::
+UIBuilder.gd::GDScript::8999472347191260665::1780186490::0::1::::UIBuilder<>RefCounted<><>0<>0<><>::

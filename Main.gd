@@ -506,6 +506,7 @@ func load_run(slot: int, data: Dictionary):
 		shop_panel.hide()
 		clear_map_stuff()
 		if is_instance_valid(map_king): map_king.hide()
+		for lbl in get_tree().get_nodes_in_group("grid_labels"): lbl.show()
 		update_ui()
 
 func save_game_state():
@@ -595,22 +596,10 @@ func update_ui_translation():
 	if is_instance_valid(lbl_graveyard_title):
 		lbl_graveyard_title.text = TranslationManager.translate("graveyard")
 		
-	if is_instance_valid(settings_panel):
-		var tabs = settings_panel.get_child(0).get_child(1)
-		if tabs:
-			if tabs is TabContainer:
-				tabs.set_tab_title(0, TranslationManager.translate("audio"))
-				tabs.set_tab_title(1, TranslationManager.translate("display"))
-				tabs.set_tab_title(2, TranslationManager.translate("game"))
-				var audio_tab = tabs.get_child(0)
-				audio_tab.get_child(0).text = TranslationManager.translate("master_vol")
-				var gfx_tab = tabs.get_child(1)
-				gfx_tab.get_child(0).text = TranslationManager.translate("fullscreen")
-			else:
-				var tab_btns = tabs.get_child(0)
-				if tab_btns.get_child_count() >= 3:
-					tab_btns.get_child(0).text = TranslationManager.translate("audio")
-					tab_btns.get_child(1).text = TranslationManager.translate("display")
+	if is_instance_valid(settings_panel) and settings_panel is SettingsMenu:
+		settings_panel.tabs.set_tab_title(0, TranslationManager.translate("audio"))
+		settings_panel.tabs.set_tab_title(1, TranslationManager.translate("display"))
+		settings_panel.tabs.set_tab_title(2, TranslationManager.translate("game"))
 					tab_btns.get_child(2).text = TranslationManager.translate("game")
 				var content_area = tabs.get_child(1)
 				if content_area.get_child_count() >= 2:
@@ -699,6 +688,7 @@ func populate_gy_container(container: Control, list: Array):
 		container.add_child(tex_rect)
 
 func update_graveyard_ui():
+	if graveyard_panel: graveyard_panel.show()
 	if graveyard_container:
 		populate_gy_container(graveyard_container, graveyard)
 	if enemy_graveyard_container:
@@ -2635,8 +2625,7 @@ func update_map_scroll():
 	
 	if map_scroll_tween and map_scroll_tween.is_running():
 		map_scroll_tween.kill()
-	map_scroll_tween = create_tween()
-	map_scroll_tween.tween_property(board_node, "position", target_pos, 0.0)
+	board_node.position = target_pos
 
 func _get_node_pos_map() -> Dictionary:
 	var m = {}

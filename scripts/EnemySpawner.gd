@@ -63,6 +63,6 @@ static func spawn_piece(main: Node, x: int, y: int, is_player: bool, type: int =
 	else: main.bot_pawns.append(p)
 	return p
 
-static func generate_level(main: Node, level: int):
+static func generate_level(_main: Node, _level: int):
 	# This function will be called from Main.gd's generate_level
 	pass

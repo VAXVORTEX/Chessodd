@@ -58,7 +58,7 @@ static func get_telepawn_moves(main, pawn, range_bonus: int) -> Array:
 				break
 	return valid_moves
 
-static func get_checker_moves(main, pawn, range_bonus: int) -> Array:
+static func get_checker_moves(main, pawn, _range_bonus: int) -> Array:
 	var valid_moves = []
 	var dirs = [Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1)]
 	for d in dirs:
@@ -124,9 +124,9 @@ static func get_king_moves(main, pawn, range_bonus: int) -> Array:
 			if main.board.has(t): break
 	return valid_moves
 
-static func get_empty_moves(main, pawn, range_bonus: int) -> Array:
+static func get_empty_moves(_main, _pawn, _range_bonus: int) -> Array:
 	return []
 
 
-static func get_eye_moves(main, pawn, range_bonus: int) -> Array:
+static func get_eye_moves(_main, _pawn, _range_bonus: int) -> Array:
 	return []

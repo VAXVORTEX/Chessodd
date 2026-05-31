@@ -300,11 +300,11 @@ func show_event_ui(title: String, desc: String, icons: Array, event_type: String
 		vbox.add_child(hbox)
 		for tex in icons:
 			if not tex: continue
-			var tr = TextureRect.new()
-			tr.texture = tex
-			tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			var tex_r = TextureRect.new()
+			tex_r.texture = tex
+			tex_r.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			tr.custom_minimum_size = Vector2(120, 120)
+			tex_r.custom_minimum_size = Vector2(120, 120)
 			hbox.add_child(tr)
 	
 	var lbl_desc = Label.new()
