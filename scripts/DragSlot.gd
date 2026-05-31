@@ -29,20 +29,7 @@ func _ready():
 	)
 	
 	var m3 = get_tree().get_first_node_in_group("main")
-	if slot_type == "piece" and m3 and m3.state != m3.GameState.SHOP and m3.state != m3.GameState.MAP:
-		var lock_rect = ColorRect.new()
-		lock_rect.color = Color(0, 0, 0, 0.6)
-		lock_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		add_child(lock_rect)
-		
-		var lock_lbl = Label.new()
-		lock_lbl.text = "X"
-		lock_lbl.set("theme_override_font_sizes/font_size", 40)
-		lock_lbl.set("theme_override_colors/font_color", Color(0.7, 0.7, 0.7, 0.9))
-		lock_lbl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		lock_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lock_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		lock_rect.add_child(lock_lbl)
+	# Lock removed so players can drag items mid-combat
 
 func _gui_input(event):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:

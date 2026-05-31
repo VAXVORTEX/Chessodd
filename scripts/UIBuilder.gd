@@ -347,7 +347,7 @@ static func create_ui(main: Node):
 	main.inv_panel = ColorRect.new()
 	main.inv_panel.color = Color(0.12, 0.14, 0.18, 1.0)
 	main.inv_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	main.inv_panel.z_index = 150
+	main.inv_panel.z_index = 300
 	main.inv_panel.call_deferred("hide")
 	main.inv_panel.process_mode = Node.PROCESS_MODE_ALWAYS
 	main.ui_layer.add_child(main.inv_panel)

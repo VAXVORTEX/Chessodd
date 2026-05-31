@@ -626,7 +626,7 @@ func add_board_coordinates():
 		board_node.add_child(lbl)
 func get_dead_piece_tooltip(dead: Dictionary) -> String:
 	var s = "[color=yellow]" + str(dead.name) + "[/color]\n"
-	s += "[color=red]0 / " + str(dead.max_hp) + " HP (Dead)[/color]\n"
+	s += "[color=red]0 HP (Dead)[/color]\n"
 	if dead.has("artifacts") and dead.artifacts.size() > 0:
 		s += "\n[color=aqua]Items:[/color]\n"
 		for a_id in dead.artifacts:

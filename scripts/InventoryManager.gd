@@ -270,7 +270,7 @@ func update_inventory_selection():
 		main.PieceType.TELEPAWN: desc = "Moves 1 step horizontally and vertically. Attacks diagonally forward. Teleports randomly after attacking."
 	main.inv_piece_desc.text = desc
 	
-	main.inv_piece_stats.text = "HP: %d/%d  |  ATK: %d" % [p.current_hp, p.max_hp, p.attack_damage]
+	main.inv_piece_stats.text = "%d HP | ATK: %d" % [p.current_hp, p.attack_damage]
 	
 	for c in main.inv_piece_slots.get_children():
 		c.queue_free()
