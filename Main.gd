@@ -161,32 +161,7 @@ func _setup_visuals():
 	world_env.environment = env
 	add_child(world_env)
 	
-	canvas_modulate = CanvasModulate.new()
-	var light_shader = ShaderMaterial.new()
-	light_shader.shader = Shader.new()
-	light_shader.shader.code = """
-shader_type canvas_item;
-uniform sampler2D screen_tex : hint_screen_texture, repeat_disable, filter_nearest;
-void fragment() {
-    vec3 c = texture(screen_tex, SCREEN_UV).rgb;
-    float dist = distance(SCREEN_UV, vec2(0.5, 0.5));
-    float vignette = smoothstep(0.4, 1.2, dist) * 0.45;
-    // Move sun slowly across the board diagonally like a real light source
-    vec2 sun_pos = vec2(0.2 + mod(TIME * 0.02, 0.6), 0.1 + mod(TIME * 0.015, 0.4));
-    float sun_dist = distance(SCREEN_UV, sun_pos);
-    float sun = (1.0 - smoothstep(0.0, 0.15, sun_dist)) * 0.55; // Much smaller, sharper, brighter
-    c = mix(c, vec3(0.0), vignette);
-    c = c + vec3(1.0, 0.95, 0.8) * sun;
-    COLOR = vec4(c, 1.0);
-}
-"""
-	var screen_rect = ColorRect.new()
-	screen_rect.material = light_shader
-	screen_rect.size = Vector2(2560, 1440) # Ensure it's large enough to cover the screen
-	screen_rect.position = Vector2(-200, -200)
-	screen_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	screen_rect.z_index = 4000
-	add_child(screen_rect)
+
 	
 	clouds_rect = TextureRect.new()
 	clouds_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -2127,7 +2102,7 @@ func show_dead_piece_info(dead):
 	info_stats.modulate.a = 1
 	info_item_slots.modulate.a = 1
 	
-	info_stats.text = "HP: 0/%d\nATK: 0" % [max_hp]
+	info_stats.text = "0 HP   0 ATK"
 	if dead.is_player:
 		info_stats.set("theme_override_colors/font_color", Color(0.4, 0.8, 1.0))
 	else:
@@ -2232,10 +2207,10 @@ func update_info_panel(g_pos):
 			
 			if has_stacked:
 				var count = found.get_meta("stacked_checker_count")
-				info_stats.text = "HP: %d/%d + %d/%d   ATK: %d + %d" % [count, count, found.current_hp, found.max_hp, count, found.attack_damage - count]
+				info_stats.text = "%d+%d HP   %d+%d ATK" % [found.current_hp, count, found.attack_damage - count, count]
 				desc = "Stacked Checker: Moves 1 step orthogonally. Can be stacked under another piece for +1 ATK and a 1-hit shield.\n\n" + desc
 			else:
-				info_stats.text = "HP: %d/%d   ATK: %d" % [found.current_hp, found.max_hp, found.attack_damage]
+				info_stats.text = "%d HP   %d ATK" % [found.current_hp, found.attack_damage]
 				
 			# Setup stacked checker icon in preview
 			if has_stacked:

@@ -747,7 +747,6 @@ static func create_ui(main: Node):
 	gy_vbox.add_child(enemy_gy_title)
 	
 	var egy_scroll = ScrollContainer.new()
-	egy_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	egy_scroll.custom_minimum_size = Vector2(0, 80)
 	egy_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	egy_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -755,18 +754,16 @@ static func create_ui(main: Node):
 	
 	main.enemy_graveyard_container = HBoxContainer.new()
 	main.enemy_graveyard_container.add_theme_constant_override("separation", -64)
-	main.enemy_graveyard_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	egy_scroll.add_child(main.enemy_graveyard_container)
 
 	main.lbl_graveyard_title = Label.new()
-	main.lbl_graveyard_title.text = "My figures"
+	main.lbl_graveyard_title.text = "Your figures"
 	main.lbl_graveyard_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	main.lbl_graveyard_title.set("theme_override_colors/font_color", Color(0.5, 0.7, 1.0))
 	main.lbl_graveyard_title.set("theme_override_font_sizes/font_size", 20)
 	gy_vbox.add_child(main.lbl_graveyard_title)
 	
 	var gy_scroll = ScrollContainer.new()
-	gy_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	gy_scroll.custom_minimum_size = Vector2(0, 80)
 	gy_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	gy_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -774,7 +771,6 @@ static func create_ui(main: Node):
 	
 	main.graveyard_container = HBoxContainer.new()
 	main.graveyard_container.add_theme_constant_override("separation", -64)
-	main.graveyard_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	gy_scroll.add_child(main.graveyard_container)
 
 	main.ui_layer.move_child(hud_panel, -1)
