@@ -67,4 +67,6 @@ func _can_drop_data(at_position, data):
 	return data is DragSlot and data != self
 
 func _drop_data(_at_position, data):
-	get_tree().call_group("main", "on_item_dropped", data, self)
+	var main = get_tree().get_first_node_in_group("main")
+	if main and main.inventory_manager and main.inventory_manager.has_method("on_item_dropped"):
+		main.inventory_manager.on_item_dropped(data, self)

@@ -190,6 +190,7 @@ static func create_ui(main: Node):
 	hud_hbox.add_child(pause_btn)
 	
 	var right_hud_panel = PanelContainer.new()
+	right_hud_panel.name = "RightHUDPanel"
 	var right_style = StyleBoxFlat.new()
 	right_style.bg_color = Color(0.1, 0.12, 0.15, 0.85)
 	right_style.corner_radius_bottom_left = 20
