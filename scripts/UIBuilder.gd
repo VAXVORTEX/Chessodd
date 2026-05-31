@@ -121,10 +121,10 @@ static func create_ui(main: Node):
 		slot.mouse_entered.connect(func():
 			var i_id = slot.get_meta("item_id")
 			if i_id != "":
-				main.show_custom_tooltip(ItemManager.get_item_description(i_id))
+				main.inventory_manager.show_custom_tooltip(ItemManager.get_item_description(i_id))
 		)
 		slot.mouse_exited.connect(func():
-			main.hide_custom_tooltip()
+			main.inventory_manager.hide_custom_tooltip()
 		)
 		slot.gui_input.connect(func(event):
 			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -234,7 +234,7 @@ static func create_ui(main: Node):
 	var hud_inv_btn = Button.new()
 	hud_inv_btn.text = "Inventory"
 	hud_inv_btn.set("theme_override_font_sizes/font_size", 24)
-	hud_inv_btn.pressed.connect(func(): main.toggle_inventory())
+	hud_inv_btn.pressed.connect(func(): main.inventory_manager.toggle_inventory())
 	right_vbox.add_child(hud_inv_btn)
 	
 
@@ -501,7 +501,7 @@ static func create_ui(main: Node):
 	main.inv_start_btn.custom_minimum_size = Vector2(350, 80)
 	main.inv_start_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	main.inv_start_btn.pressed.connect(func():
-		main.toggle_inventory()
+		main.inventory_manager.toggle_inventory()
 	)
 	center_wrapper.add_child(main.inv_start_btn)
 	
@@ -615,7 +615,7 @@ static func create_ui(main: Node):
 	shop_next_btn.text = "Manage Inventory"
 	shop_next_btn.set("theme_override_font_sizes/font_size", 32)
 	shop_next_btn.custom_minimum_size = Vector2(300, 80)
-	shop_next_btn.pressed.connect(main.toggle_inventory)
+	shop_next_btn.pressed.connect(main.inventory_manager.toggle_inventory)
 	shop_hbox.add_child(shop_next_btn)
 	
 	var reroll_btn = Button.new()

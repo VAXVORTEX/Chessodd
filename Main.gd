@@ -35,6 +35,7 @@ var game_over = false
 var normal_move_used = false
 
 var map_manager = preload("res://scripts/MapManager.gd").new()
+var inventory_manager = preload("res://scripts/InventoryManager.gd").new(self)
 var event_manager = preload("res://scripts/EventManager.gd").new(self)
 var shop_manager = preload("res://scripts/ShopManager.gd").new(self)
 var map_king = null
@@ -676,240 +677,6 @@ func update_ui():
 	coins_label.text = "Coins: %d" % coins
 	room_label.text = "Room: %d" % level
 
-func toggle_inventory():
-	info_panel.hide()
-	if inv_panel.visible:
-		inv_panel.hide()
-		if state == GameState.SHOP:
-			shop_panel.show()
-	else:
-		refresh_player_pawns()
-		if player_pawns.size() > 0:
-			if current_view_index >= player_pawns.size():
-				current_view_index = 0
-			if state == GameState.SHOP:
-				shop_panel.hide()
-			inv_panel.show()
-			update_inventory_screen()
-
-func refresh_player_pawns():
-	var valid_pawns = []
-	for p in player_pawns:
-		if is_instance_valid(p) and p.current_hp > 0:
-			valid_pawns.append(p)
-	player_pawns = valid_pawns
-
-func shift_view_index(dir):
-	if player_pawns.size() == 0: return
-	current_view_index = (current_view_index + dir) % player_pawns.size()
-	if current_view_index < 0:
-		current_view_index = player_pawns.size() - 1
-	update_inventory_screen()
-
-func get_base_stats(type):
-	var data = PieceData.registry.get(type)
-	if data: return {"hp": data.get("hp", 1), "atk": data.get("atk", 1)}
-	return {"hp": 1, "atk": 1}
-
-func recalc_pawn_stats(p):
-	var base = get_base_stats(p.piece_type)
-	p.attack_damage = base.atk
-	if p.has_meta("stacked_checker_count"):
-		p.attack_damage += p.get_meta("stacked_checker_count")
-	for a in p.artifacts:
-		if a == "knife":
-			p.attack_damage += 1
-		elif a == "hoof" and p.piece_type == PieceType.KNIGHT:
-			p.attack_damage += 1
-
-func swap_items(src_type, src_idx, dst_type, dst_idx):
-	if player_pawns.size() == 0: return
-	var p = player_pawns[current_view_index]
-	
-	while p.artifacts.size() < 3:
-		p.artifacts.append("")
-	var arts = p.artifacts
-	
-	var get_item = func(typ, idx):
-		if typ == "piece":
-			return arts[idx]
-		else:
-			return unassigned_items[idx] if idx < unassigned_items.size() else ""
-	
-	var set_item = func(typ, idx, item_id):
-		if typ == "piece":
-			arts[idx] = item_id
-		else:
-			if item_id == "":
-				if idx < unassigned_items.size(): unassigned_items.remove_at(idx)
-			else:
-				if idx < unassigned_items.size():
-					unassigned_items[idx] = item_id
-				else:
-					unassigned_items.append(item_id)
-	
-	var item_src = get_item.call(src_type, src_idx)
-	var item_dst = get_item.call(dst_type, dst_idx)
-	
-	if item_src == "": return
-	
-	if p.piece_type == PieceType.CHECKER:
-		show_floating_text(p.grid_pos if is_instance_valid(p) else Vector2.ZERO, "CANNOT EQUIP ON CHECKER!", Color.RED)
-		return
-		
-	if dst_type == "piece" and (dst_idx == 0 or dst_idx == 2) and arts[1] == "dark_mirror":
-		show_floating_text(p.grid_pos if is_instance_valid(p) else Vector2.ZERO, "SLOT LOCKED!", Color.RED)
-		return
-		
-	if item_src == "dark_mirror" and dst_type == "piece":
-		for i in range(3):
-			if arts[i] != "":
-				unassigned_items.append(arts[i])
-				arts[i] = ""
-		arts[1] = "dark_mirror"
-		if src_type == "pool":
-			unassigned_items.remove_at(src_idx)
-		recalc_pawn_stats(p)
-		update_piece_slots(p)
-		update_inventory_screen()
-		return
-	
-	set_item.call(src_type, src_idx, item_dst)
-	set_item.call(dst_type, dst_idx, item_src)
-	
-	while arts.size() > 3:
-		var removed = arts.pop_back()
-		if removed != "":
-			unassigned_items.append(removed)
-	
-	recalc_pawn_stats(p)
-	update_piece_slots(p)
-	update_inventory_screen()
-
-func on_item_dropped(src_slot: DragSlot, dst_slot: DragSlot):
-	swap_items(src_slot.slot_type, src_slot.slot_index, dst_slot.slot_type, dst_slot.slot_index)
-
-func get_item_texture(item_id: String):
-	match item_id:
-		"knife": return tex_knife
-		"bottle": return tex_bottle
-		"boots": return tex_boots
-		"deadking_head": return tex_deadking_head
-		"dark_mirror": return tex_dark_mirror
-		"hand": return tex_hand
-		"blood_knife": return tex_blood_knife
-		"torch": return tex_torch
-		"finger": return tex_finger
-		"shark_tooth": return tex_shark_tooth
-		"hoof": return tex_hoof
-		"brain_jar": return tex_brain_jar
-	return null
-
-func show_custom_tooltip(text: String):
-	item_tooltip_lbl.text = text
-	item_tooltip.show()
-
-func hide_custom_tooltip():
-	item_tooltip.hide()
-
-func show_item_info(item_id: String, pos: Vector2):
-	if item_id == "": return
-	info_panel.show()
-	info_panel.position = pos
-	info_name.text = item_id.capitalize()
-	info_stats.text = ""
-	info_desc.text = ItemManager.get_item_description(item_id)
-
-func get_piece_name(type):
-	var data = PieceData.registry.get(type)
-	if data: return data.get("title", "Unknown")
-	return "Unknown"
-
-func update_inventory_screen():
-	inv_start_btn.visible = true
-	
-	for c in inv_pieces_list.get_children():
-		c.queue_free()
-		
-	var type_counts = {}
-	for p in player_pawns: type_counts[p.piece_type] = type_counts.get(p.piece_type, 0) + 1
-	var type_indices = {}
-	
-	for i in range(player_pawns.size()):
-		var p = player_pawns[i]
-		var t = p.piece_type
-		type_indices[t] = type_indices.get(t, 0) + 1
-		
-		var panel = PanelContainer.new()
-		var p_sb = StyleBoxFlat.new()
-		p_sb.bg_color = Color(0.15, 0.15, 0.25, 0.8)
-		p_sb.corner_radius_top_left = 10
-		p_sb.corner_radius_top_right = 10
-		p_sb.corner_radius_bottom_left = 10
-		p_sb.corner_radius_bottom_right = 10
-		panel.add_theme_stylebox_override("panel", p_sb)
-		
-		var vbox = VBoxContainer.new()
-		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-		
-		var tbtn = TextureButton.new()
-		tbtn.texture_normal = p.texture
-		tbtn.ignore_texture_size = true
-		tbtn.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-		tbtn.custom_minimum_size = Vector2(100, 100)
-		tbtn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		var p_idx = i
-		tbtn.pressed.connect(func():
-			current_view_index = p_idx
-			update_inventory_selection()
-		)
-		vbox.add_child(tbtn)
-		
-		var lbl = Label.new()
-		var n = get_piece_name(t)
-		if type_counts[t] > 1: n += " " + str(type_indices[t])
-		lbl.text = n
-		lbl.set("theme_override_font_sizes/font_size", 20)
-		lbl.set("theme_override_colors/font_color", Color.BLACK)
-		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		vbox.add_child(lbl)
-		
-		panel.add_child(vbox)
-		inv_pieces_list.add_child(panel)
-		
-	if player_pawns.size() > 0:
-		if current_view_index >= player_pawns.size(): current_view_index = 0
-		update_inventory_selection()
-	else:
-		inv_piece_tex.texture = null
-		inv_piece_name.text = ""
-		inv_piece_desc.text = ""
-		inv_piece_stats.text = ""
-		for c in inv_piece_slots.get_children(): c.queue_free()
-			
-	for c in inv_pool_grid.get_children():
-		c.queue_free()
-		
-	for i in range(max(24, unassigned_items.size() + 5)):
-		var bg = ColorRect.new()
-		bg.custom_minimum_size = Vector2(80, 80)
-		bg.color = Color(0.15, 0.15, 0.25, 0.8)
-		bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		
-		var drag_slot = load("res://scripts/DragSlot.gd").new()
-		drag_slot.slot_type = "pool"
-		drag_slot.slot_index = i
-		drag_slot.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		drag_slot.custom_minimum_size = Vector2(80, 80)
-		drag_slot.mouse_filter = Control.MOUSE_FILTER_STOP
-		
-		if i < unassigned_items.size():
-			drag_slot.item_id = unassigned_items[i]
-			drag_slot.texture = get_item_texture(drag_slot.item_id)
-			
-		bg.add_child(drag_slot)
-		inv_pool_grid.add_child(bg)
-
 func update_inventory_selection():
 	if player_pawns.is_empty(): return
 	var p = player_pawns[current_view_index]
@@ -1188,7 +955,7 @@ func _input(event):
 				state = GameState.PLAYING
 				status_label.text = TranslationManager.translate("player_turn", [turn_count])
 				status_label.set("theme_override_colors/font_color", Color.WHITE)
-				update_inventory_screen()
+				inventory_manager.update_inventory_screen()
 				if active_item_slot_ui:
 					active_item_slot_ui.modulate = Color.WHITE
 					active_item_slot_ui = null
@@ -1210,7 +977,7 @@ func _input(event):
 				spawn_clone_piece(selected_piece, g_pos)
 				
 				mirror_used_this_level = true
-				recalc_pawn_stats(selected_piece)
+				inventory_manager.recalc_pawn_stats(selected_piece)
 				update_piece_slots(selected_piece)
 				update_info_panel(selected_piece.grid_pos)
 				
@@ -1305,7 +1072,7 @@ func _input(event):
 					var push_pos = g_pos + push_dir
 					
 					selected_piece.set_meta("hand_used_this_turn", true)
-					recalc_pawn_stats(selected_piece)
+					inventory_manager.recalc_pawn_stats(selected_piece)
 					update_piece_slots(selected_piece)
 					
 					var blocked = not is_inside(push_pos) or board.has(push_pos)
@@ -1372,7 +1139,7 @@ func _input(event):
 							show_floating_text(g_pos, "BURN +2!", Color.ORANGE)
 						selected_piece.set_meta("torch_used_this_turn", true)
 					
-					recalc_pawn_stats(selected_piece)
+					inventory_manager.recalc_pawn_stats(selected_piece)
 					update_piece_slots(selected_piece)
 					if selected_piece: update_info_panel(selected_piece.grid_pos)
 					
@@ -2243,7 +2010,7 @@ func update_info_panel(g_pos):
 				if i < found.artifacts.size():
 					var art = found.artifacts[i]
 					slot_node.set_meta("item_id", art)
-					tex_rect.texture = get_item_texture(art)
+					tex_rect.texture = inventory_manager.get_item_texture(art)
 					if art == "hand" and found.has_meta("hand_used_this_turn") and found.get_meta("hand_used_this_turn"):
 						tex_rect.modulate = Color(0.3, 0.3, 0.3)
 					elif art == "dark_mirror" and mirror_used_this_level:
@@ -2377,7 +2144,7 @@ func generate_shop():
 		btn.pressed.connect(buy_item.bind(type, cost, btn, false))
 		btn.gui_input.connect(func(event):
 			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
-				show_item_info(PieceType.keys()[type], btn.global_position + Vector2(20,20))
+				inventory_manager.show_item_info(PieceType.keys()[type], btn.global_position + Vector2(20,20))
 		)
 		shop_items_container.add_child(btn)
 		
@@ -2391,14 +2158,14 @@ func generate_shop():
 		btn.custom_minimum_size = Vector2(160, 200)
 		btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		
-		btn.icon = get_item_texture(item_type)
+		btn.icon = inventory_manager.get_item_texture(item_type)
 		btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		btn.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 		btn.expand_icon = true
 		btn.pressed.connect(buy_item.bind(item_type, cost, btn, true))
 		btn.gui_input.connect(func(event):
 			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
-				show_item_info(item_type, btn.global_position + Vector2(20,20))
+				inventory_manager.show_item_info(item_type, btn.global_position + Vector2(20,20))
 		)
 		shop_items_container.add_child(btn)
 
