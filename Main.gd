@@ -600,17 +600,7 @@ func update_ui_translation():
 		settings_panel.tabs.set_tab_title(0, TranslationManager.translate("audio"))
 		settings_panel.tabs.set_tab_title(1, TranslationManager.translate("display"))
 		settings_panel.tabs.set_tab_title(2, TranslationManager.translate("game"))
-					tab_btns.get_child(2).text = TranslationManager.translate("game")
-				var content_area = tabs.get_child(1)
-				if content_area.get_child_count() >= 2:
-					var audio_tab = content_area.get_child(0)
-					audio_tab.get_child(0).text = TranslationManager.translate("master_vol")
-					var gfx_tab = content_area.get_child(1)
-					if gfx_tab.get_child_count() > 0 and gfx_tab.get_child(0) is CheckBox:
-						gfx_tab.get_child(0).text = TranslationManager.translate("fullscreen")
-			var close_btn = settings_panel.get_child(0).get_child(2)
-			close_btn.text = TranslationManager.translate("close")
-			
+
 	if is_instance_valid(inv_panel):
 		var title = inv_panel.get_child(0).get_child(0)
 		title.text = TranslationManager.translate("inventory")
