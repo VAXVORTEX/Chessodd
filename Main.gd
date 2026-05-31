@@ -442,7 +442,12 @@ func load_run(slot: int, data: Dictionary):
 		piece.artifacts = p.artifacts
 		if p.has("meta"):
 			for k in p.meta.keys():
-				piece.set_meta(k, p.meta[k])
+				var val = p.meta[k]
+				if typeof(val) == TYPE_STRING and val.begins_with("(") and val.ends_with(")"):
+					var vec_str = val.replace("(", "").replace(")", "").split(",")
+					if vec_str.size() == 2:
+						val = Vector2(float(vec_str[0]), float(vec_str[1]))
+				piece.set_meta(k, val)
 	
 	var b_data = data.get("bot_pawns", [])
 	for b in b_data:
@@ -454,12 +459,12 @@ func load_run(slot: int, data: Dictionary):
 		piece.artifacts = b.artifacts
 		if b.has("meta"):
 			for k in b.meta.keys():
-				if k == "eye_target":
-					var vec_str = b.meta[k].replace("(", "").replace(")", "").split(",")
+				var val = b.meta[k]
+				if typeof(val) == TYPE_STRING and val.begins_with("(") and val.ends_with(")"):
+					var vec_str = val.replace("(", "").replace(")", "").split(",")
 					if vec_str.size() == 2:
-						piece.set_meta(k, Vector2(float(vec_str[0]), float(vec_str[1])))
-				else:
-					piece.set_meta(k, b.meta[k])
+						val = Vector2(float(vec_str[0]), float(vec_str[1]))
+				piece.set_meta(k, val)
 		
 	graveyard = data.get("graveyard", [])
 	enemy_graveyard = data.get("enemy_graveyard", [])
