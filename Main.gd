@@ -672,13 +672,18 @@ func populate_gy_container(container: Control, list: Array):
 		hl.hide()
 		tex_rect.add_child(hl)
 		
+		tex_rect.pivot_offset = Vector2(32, 32)
 		tex_rect.mouse_entered.connect(func():
 			hl.show()
-			show_custom_tooltip(get_dead_piece_tooltip(dead))
+			tex_rect.z_index = 10
+			var tween = create_tween()
+			tween.tween_property(tex_rect, "scale", Vector2(1.15, 1.15), 0.1)
 		)
 		tex_rect.mouse_exited.connect(func():
 			hl.hide()
-			hide_custom_tooltip()
+			tex_rect.z_index = 0
+			var tween = create_tween()
+			tween.tween_property(tex_rect, "scale", Vector2(1.0, 1.0), 0.1)
 		)
 		container.add_child(tex_rect)
 
@@ -1763,13 +1768,14 @@ func take_damage(piece, amt, attacker = null):
 		var dead_title = PieceData.registry.get(piece.piece_type, {}).get("title", "?")
 		var dead_entry = {"tex": dead_tex, "type": piece.piece_type, "name": dead_title, "is_player": piece.is_player, "max_hp": piece.max_hp, "artifacts": piece.artifacts.duplicate()}
 		
+		var is_junk = piece.piece_type == PieceType.POOP or piece.piece_type == PieceType.ROCK
 		if piece.is_player:
-			graveyard.append(dead_entry)
+			if not is_junk: graveyard.append(dead_entry)
 			player_pawns.erase(piece)
 			if player_pawns.is_empty():
 				trigger_game_over("Game Over! All pieces lost!")
 		elif bot_pawns.has(piece):
-			enemy_graveyard.append(dead_entry)
+			if not is_junk: enemy_graveyard.append(dead_entry)
 			bot_pawns.erase(piece)
 			
 		if board.has(piece.grid_pos) and board[piece.grid_pos] == piece:
@@ -2630,7 +2636,8 @@ func update_map_scroll():
 	
 	if map_scroll_tween and map_scroll_tween.is_running():
 		map_scroll_tween.kill()
-	board_node.position = target_pos
+	map_scroll_tween = create_tween()
+	map_scroll_tween.tween_property(board_node, "position", target_pos, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
 
 func _get_node_pos_map() -> Dictionary:
 	var m = {}
@@ -2776,6 +2783,9 @@ func trigger_map_node(n):
 	tween.tween_callback(func(): start_map_node(n))
 
 func start_map_node(node):
+	graveyard.clear()
+	enemy_graveyard.clear()
+	update_graveyard_ui()
 	level = node.floor + 1
 	status_label.text = TranslationManager.translate("floor", [level])
 	match int(node.type):
