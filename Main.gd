@@ -17,7 +17,8 @@ var tex_blood_hazards = []
 
 var info_statuses = null
 var active_item_slot_ui = null
-var current_turn = 0 
+var current_turn = 0
+var any_player_piece_died = false 
 var player_pawns = []
 var bot_pawns = []
 var state = GameState.PLAYING
@@ -350,6 +351,7 @@ func open_save_slots():
 
 func start_new_run(slot: int):
 	game_over = false
+	any_player_piece_died = false
 	if is_instance_valid(game_over_panel): game_over_panel.hide()
 	game_over = false
 	if is_instance_valid(game_over_panel): game_over_panel.hide()
@@ -395,6 +397,7 @@ func load_run(slot: int, data: Dictionary):
 	board_node.show()
 	graveyard_panel.show()
 	coins = data.get("coins", 5)
+	any_player_piece_died = data.get("any_player_piece_died", false)
 	level = data.get("level", 1)
 	act = data.get("act", 1)
 	time_elapsed = data.get("time_elapsed", 0.0)
@@ -504,6 +507,7 @@ func save_game_state():
 		"time_elapsed": time_elapsed,
 		"turn_count": turn_count,
 		"unassigned_items": unassigned_items,
+		"any_player_piece_died": any_player_piece_died,
 		"player_pawns": p_data,
 		"graveyard": graveyard,
 		"enemy_graveyard": enemy_graveyard,
@@ -1588,6 +1592,8 @@ func take_damage(piece, amt, attacker = null):
 		update_info_panel(piece.grid_pos)
 		
 	if hp <= 0:
+		if piece.is_player:
+			any_player_piece_died = true
 		if is_instance_valid(attacker) and attacker.piece_type == PieceType.BLOOD_QUEEN:
 			var heal_amt = 1
 			var p_name = ""
@@ -2474,14 +2480,22 @@ func start_next_level(node_info):
 	
 	for i in range(p_pieces.size()):
 		var p = p_pieces[i]
-		if i < empty_player_spots.size():
-			p.bottle_used_this_level = false
-			var spot = empty_player_spots[i]
-			p.grid_pos = spot
-			p.position = spot * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
-			p.show()
-			board[spot] = p
-			player_pawns.append(p)
+		p.bottle_used_this_level = false
+		var spot = Vector2.ZERO
+		
+		if not any_player_piece_died and p_pieces.size() == 10:
+			spot = p.get_meta("start_pos", p.grid_pos)
+		else:
+			if i < empty_player_spots.size():
+				spot = empty_player_spots[i]
+			else:
+				continue
+				
+		p.grid_pos = spot
+		p.position = spot * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
+		p.show()
+		board[spot] = p
+		player_pawns.append(p)
 		else:
 			p.queue_free()
 			

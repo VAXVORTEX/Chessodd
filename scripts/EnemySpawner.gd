@@ -36,6 +36,8 @@ static func spawn_piece(main: Node, x: int, y: int, is_player: bool, type: int =
 	if type == main.PieceType.BOSS_HEAD: p.set_meta("is_head", true)
 	if type == main.PieceType.BOSS_BODY: p.set_meta("is_body", true)
 	
+	p.set_meta("start_pos", Vector2(x, y))
+	
 	p.artifacts = []
 	p.bottle_used_this_level = false
 	
