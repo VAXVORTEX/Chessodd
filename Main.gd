@@ -519,7 +519,7 @@ func save_game_state():
 	}
 	SaveManager.save_game(current_save_slot, data)
 
-func _process(_delta):
+func _process(delta):
 	if get_tree().paused: return
 	
 	if item_tooltip and item_tooltip.visible:
@@ -651,13 +651,13 @@ func populate_gy_container(container: Control, list: Array):
 		tex_rect.mouse_entered.connect(func():
 			tex_rect.modulate = Color(1.2, 1.2, 1.2, 1.0)
 			tex_rect.z_index = 10
-			tween = create_tween()
+			var tween = create_tween()
 			tween.tween_property(tex_rect, "scale", Vector2(1.15, 1.15), 0.1)
 		)
 		tex_rect.mouse_exited.connect(func():
 			tex_rect.modulate = Color.WHITE
 			tex_rect.z_index = 0
-			tween = create_tween()
+			var tween = create_tween()
 			tween.tween_property(tex_rect, "scale", Vector2(1.0, 1.0), 0.1)
 		)
 		tex_rect.gui_input.connect(func(event):
@@ -689,7 +689,7 @@ func update_inventory_selection():
 	for j in range(current_view_index):
 		if player_pawns[j].piece_type == p.piece_type: idx += 1
 		
-	var n = get_piece_name(p.piece_type)
+	var n = inventory_manager.get_piece_name(p.piece_type)
 	if type_counts[p.piece_type] > 1: n += " " + str(idx)
 	inv_piece_name.text = n
 
@@ -1028,7 +1028,7 @@ func _input(event):
 							line.default_color = Color.RED
 							line.z_index = 5
 							board_node.add_child(line)
-							tween = create_tween()
+							var tween = create_tween()
 							tween.tween_property(line, "modulate:a", 0.0, 0.5)
 							tween.tween_callback(line.queue_free)
 							take_damage(board[t], target.attack_damage, target)
@@ -1088,7 +1088,7 @@ func _input(event):
 						
 						var bump_px = (g_pos * CELL_SIZE_V + push_pos * CELL_SIZE_V) / 2.0 + (CELL_SIZE_V / 2.0)
 						var orig_px = g_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
-						tween = create_tween()
+						var tween = create_tween()
 						tween.tween_property(target, "position", bump_px, 0.1)
 						tween.tween_property(target, "position", orig_px, 0.1)
 					else:
@@ -1099,7 +1099,7 @@ func _input(event):
 							target.grid_pos = push_pos
 							board[push_pos] = target
 							
-							tween = create_tween()
+							var tween = create_tween()
 							tween.tween_property(target, "position", push_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.2)
 							tween.tween_callback(func(): check_nightmare_pawns_interaction(target))
 						if selected_piece: update_info_panel(selected_piece.grid_pos)
@@ -1374,7 +1374,7 @@ func take_damage(piece, amt, attacker = null):
 			
 			# Wait, head should be added to board if the cell is empty?
 			# The prompt says "летит по диагонали на 2 клетки и если есть фигура на его пути то он ее сталкивает на 1 клетку назад и наносит 1 урон"
-			tween = create_tween()
+			var tween = create_tween()
 			tween.tween_property(head, "position", target_head_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.5)
 			
 			# Handle push on the way
@@ -1441,7 +1441,7 @@ func take_damage(piece, amt, attacker = null):
 				var sf = min((CELL_SIZE_V.x * 3.0) / ts.x, (CELL_SIZE_V.y * 3.0) / ts.y)
 				burst.scale = Vector2(sf, sf)
 				board_node.add_child(burst)
-				tween = create_tween()
+				var tween = create_tween()
 				tween.tween_property(burst, "modulate:a", 0.0, 2.0)
 				tween.tween_callback(burst.queue_free)
 				
@@ -1526,7 +1526,7 @@ func perform_action(piece, target_pos):
 			if piece.has_meta("is_clone"):
 				vfx_manager.show_floating_text(piece.grid_pos, "SPLAT!", Color.AQUA)
 				take_damage(piece, 9999)
-				tween = create_tween()
+				var tween = create_tween()
 				end_turn_with_tween(null, target_pos, tween, piece.is_player)
 				return
 			
@@ -1563,7 +1563,7 @@ func perform_action(piece, target_pos):
 			piece.grid_pos = target_pos
 			board[target_pos] = piece
 			
-			tween = create_tween()
+			var tween = create_tween()
 			tween.tween_property(piece, "position", target_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.3)
 			end_turn_with_tween(piece, target_pos, tween)
 			return
@@ -1573,7 +1573,7 @@ func perform_action(piece, target_pos):
 		if piece.has_meta("is_clone") and was_poop:
 			vfx_manager.show_floating_text(piece.grid_pos, TranslationManager.translate("splat"), Color.BROWN)
 			take_damage(piece, 9999)
-			tween = create_tween()
+			var tween = create_tween()
 			end_turn_with_tween(null, target_pos, tween, piece.is_player)
 			return
 			
@@ -1588,7 +1588,7 @@ func perform_action(piece, target_pos):
 			vfx_manager.show_floating_text(g_pos, TranslationManager.translate("spiked"), Color.RED)
 			
 		var bump_pos = (g_pos * CELL_SIZE_V + target_pos * CELL_SIZE_V) / 2.0 + (CELL_SIZE_V / 2.0)
-		tween = create_tween()
+		var tween = create_tween()
 		if is_instance_valid(piece):
 			tween.tween_property(piece, "position", bump_pos, 0.15)
 		
@@ -1668,7 +1668,7 @@ func perform_action(piece, target_pos):
 		board[target_pos] = piece
 		handle_movement_bleed(piece, g_pos, target_pos)
 		
-		tween = create_tween()
+		var tween = create_tween()
 		tween.tween_property(piece, "position", target_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.3)
 		if piece.is_player and piece.artifacts.has("brain_jar") and not piece.get_meta("brain_used_this_turn", false):
 			piece.set_meta("brain_used_this_turn", true)
