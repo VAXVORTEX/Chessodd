@@ -2148,18 +2148,31 @@ func start_next_level(node_info):
 	for x in range(COLS):
 		for y in range(ROWS-2, ROWS):
 			empty_player_spots.append(Vector2(x, y))
+			
+	# Remove spots that are claimed by surviving pieces
+	var claimed_spots = []
+	for p in p_pieces:
+		if p.has_meta("start_pos"):
+			var sp = p.get_meta("start_pos")
+			if sp.y >= ROWS - 2:
+				claimed_spots.append(sp)
+			else:
+				# Invalid start pos (spawned mid combat), remove it so it gets a valid one
+				p.remove_meta("start_pos")
+				
+	empty_player_spots = empty_player_spots.filter(func(s): return not s in claimed_spots)
 	empty_player_spots.shuffle()
 	
-	for i in range(p_pieces.size()):
-		var p = p_pieces[i]
+	for p in p_pieces:
 		p.bottle_used_this_level = false
 		var spot = Vector2.ZERO
 		
-		if not any_player_piece_died and p_pieces.size() == 10:
-			spot = p.get_meta("start_pos", p.grid_pos)
+		if p.has_meta("start_pos"):
+			spot = p.get_meta("start_pos")
 		else:
-			if i < empty_player_spots.size():
-				spot = empty_player_spots[i]
+			if empty_player_spots.size() > 0:
+				spot = empty_player_spots.pop_back()
+				p.set_meta("start_pos", spot)
 			else:
 				p.queue_free()
 				continue
