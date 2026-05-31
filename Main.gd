@@ -2489,6 +2489,7 @@ func start_next_level(node_info):
 			if i < empty_player_spots.size():
 				spot = empty_player_spots[i]
 			else:
+				p.queue_free()
 				continue
 				
 		p.grid_pos = spot
@@ -2496,8 +2497,6 @@ func start_next_level(node_info):
 		p.show()
 		board[spot] = p
 		player_pawns.append(p)
-		else:
-			p.queue_free()
 			
 	var obstacle_spots = []
 	for x in range(COLS):
