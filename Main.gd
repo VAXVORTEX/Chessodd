@@ -425,13 +425,13 @@ func load_run(slot: int, data: Dictionary):
 	var p_data = data.get("player_pawns", [])
 	if level == 1 and act == 1 and turn_count == 1:
 		p_data = [] # Ignore corrupted saves for new runs
-		EnemySpawner.spawn_piece(self, 0, ROWS - 1, true, PieceType.KNIGHT)
-		EnemySpawner.spawn_piece(self, 1, ROWS - 1, true, PieceType.BISHOP)
+		#EnemySpawner.spawn_piece(self, 0, ROWS - 1, true, PieceType.KNIGHT)
+		#EnemySpawner.spawn_piece(self, 1, ROWS - 1, true, PieceType.BISHOP)
 		EnemySpawner.spawn_piece(self, 2, ROWS - 1, true, PieceType.KING)
-		EnemySpawner.spawn_piece(self, 3, ROWS - 1, true, PieceType.QUEEN)
-		EnemySpawner.spawn_piece(self, 4, ROWS - 1, true, PieceType.ROOK)
-		for i in range(COLS):
-			EnemySpawner.spawn_piece(self, i, ROWS - 2, true, PieceType.PAWN)
+		#EnemySpawner.spawn_piece(self, 3, ROWS - 1, true, PieceType.QUEEN)
+		#EnemySpawner.spawn_piece(self, 4, ROWS - 1, true, PieceType.ROOK)
+		#for i in range(COLS):
+		#	EnemySpawner.spawn_piece(self, i, ROWS - 2, true, PieceType.PAWN)
 			
 	for p in p_data:
 		var pos = Vector2(p.x, p.y)
