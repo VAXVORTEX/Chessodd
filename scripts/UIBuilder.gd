@@ -736,7 +736,7 @@ static func create_ui(main: Node):
 	right_vbox.add_child(main.graveyard_panel)
 	
 	var gy_vbox = VBoxContainer.new()
-	gy_vbox.add_theme_constant_override("separation", 10)
+	gy_vbox.add_theme_constant_override("separation", 20)
 	main.graveyard_panel.add_child(gy_vbox)
 	
 	var enemy_gy_title = Label.new()
@@ -747,7 +747,7 @@ static func create_ui(main: Node):
 	gy_vbox.add_child(enemy_gy_title)
 	
 	var egy_scroll = ScrollContainer.new()
-	egy_scroll.custom_minimum_size = Vector2(0, 80)
+	egy_scroll.custom_minimum_size = Vector2(0, 140)
 	egy_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	egy_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	gy_vbox.add_child(egy_scroll)
@@ -764,7 +764,7 @@ static func create_ui(main: Node):
 	gy_vbox.add_child(main.lbl_graveyard_title)
 	
 	var gy_scroll = ScrollContainer.new()
-	gy_scroll.custom_minimum_size = Vector2(0, 80)
+	gy_scroll.custom_minimum_size = Vector2(0, 140)
 	gy_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	gy_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	gy_vbox.add_child(gy_scroll)

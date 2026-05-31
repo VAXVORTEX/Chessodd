@@ -572,8 +572,7 @@ func update_ui_translation():
 
 	if is_instance_valid(lbl_settings_title):
 		lbl_settings_title.text = TranslationManager.translate("settings")
-	if is_instance_valid(lbl_graveyard_title):
-		lbl_graveyard_title.text = TranslationManager.translate("graveyard")
+	pass
 		
 	if is_instance_valid(settings_panel) and settings_panel is SettingsMenu:
 		settings_panel.tabs.set_tab_title(0, TranslationManager.translate("audio"))
