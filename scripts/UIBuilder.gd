@@ -514,6 +514,11 @@ static func create_ui(main: Node):
 	main.inv_piece_stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	center_vbox.add_child(main.inv_piece_stats)
 	
+	main.inv_bench_btn = Button.new()
+	main.inv_bench_btn.custom_minimum_size = Vector2(300, 60)
+	main.inv_bench_btn.set("theme_override_font_sizes/font_size", 32)
+	center_vbox.add_child(main.inv_bench_btn)
+	
 	main.inv_start_btn = Button.new()
 	main.inv_start_btn.text = "Close Inventory"
 	main.inv_start_btn.set("theme_override_font_sizes/font_size", 40)

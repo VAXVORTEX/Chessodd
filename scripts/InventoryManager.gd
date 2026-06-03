@@ -176,7 +176,8 @@ func update_inventory_screen():
 		
 		var panel = PanelContainer.new()
 		var p_sb = StyleBoxFlat.new()
-		p_sb.bg_color = Color(0.15, 0.15, 0.25, 0.8)
+		var is_benched = p.get_meta("is_benched")
+		p_sb.bg_color = Color(1.0, 0.2, 0.2, 0.8) if is_benched else Color(0.2, 1.0, 0.2, 0.8)
 		p_sb.corner_radius_top_left = 10
 		p_sb.corner_radius_top_right = 10
 		p_sb.corner_radius_bottom_left = 10
@@ -274,6 +275,38 @@ func update_inventory_selection():
 	main.inv_piece_desc.text = desc
 	
 	main.inv_piece_stats.text = "%d HP | ATK: %d" % [p.current_hp, p.attack_damage]
+	
+	if main.inv_bench_btn:
+		var is_benched = p.get_meta("is_benched")
+		
+		# Disconnect old signals
+		if main.inv_bench_btn.pressed.get_connections().size() > 0:
+			for conn in main.inv_bench_btn.pressed.get_connections():
+				main.inv_bench_btn.pressed.disconnect(conn.callable)
+				
+		if is_benched:
+			main.inv_bench_btn.text = "Unselected"
+			main.inv_bench_btn.modulate = Color(1.0, 0.3, 0.3)
+		else:
+			main.inv_bench_btn.text = "Selected"
+			main.inv_bench_btn.modulate = Color(0.3, 1.0, 0.3)
+			
+		main.inv_bench_btn.pressed.connect(func():
+			if p.piece_type == main.PieceType.KING: return
+			var currently_benched = p.get_meta("is_benched")
+			
+			if currently_benched:
+				var unbenched_count = 0
+				for cp in main.player_pawns:
+					if not cp.get_meta("is_benched"): unbenched_count += 1
+				if unbenched_count >= 15:
+					return # Cannot unbench more!
+					
+			p.set_meta("is_benched", not currently_benched)
+			if not currently_benched: p.remove_meta("start_pos")
+			update_inventory_screen()
+			update_inventory_selection()
+		)
 	
 	for c in main.inv_piece_slots.get_children():
 		c.queue_free()

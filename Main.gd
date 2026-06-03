@@ -141,6 +141,7 @@ var inv_pool_grid: GridContainer
 var inv_coins_lbl: Label
 var inv_pieces_list: GridContainer
 var inv_start_btn: Button
+var inv_bench_btn: Button
 
 var item_tooltip: PanelContainer
 var item_tooltip_lbl: Label
