@@ -637,13 +637,7 @@ static func create_ui(main: Node):
 	shop_hbox.add_theme_constant_override("separation", 40)
 	shop_bottom_vbox.add_child(shop_hbox)
 	
-	var shop_next_btn = Button.new()
-	shop_next_btn.text = "Manage Inventory"
-	shop_next_btn.set("theme_override_font_sizes/font_size", 32)
-	shop_next_btn.custom_minimum_size = Vector2(300, 80)
-	shop_next_btn.pressed.connect(main.inventory_manager.toggle_inventory)
-	shop_next_btn.position = Vector2(300, 150) # Left Top corner below pause
-	main.shop_panel.add_child(shop_next_btn)
+	# Manage Inventory button removed from shop
 	
 	var reroll_btn = Button.new()
 	reroll_btn.text = "Reroll ($3)"
@@ -658,8 +652,8 @@ static func create_ui(main: Node):
 			reroll_btn.text = "Rerolled"
 			main.generate_shop()
 	)
-	reroll_btn.position = Vector2(100, 100) # Right Top symmetric
-	main.shop_panel.add_child(reroll_btn)
+	reroll_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	shop_bottom_vbox.add_child(reroll_btn)
 	
 	var shop_start_btn = Button.new()
 	shop_start_btn.text = "Return to Map"

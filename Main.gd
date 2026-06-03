@@ -2145,8 +2145,8 @@ func generate_shop():
 	for s in shelves:
 		var vbox = VBoxContainer.new()
 		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-		vbox.add_theme_constant_override("separation", 4)
-		vbox.custom_minimum_size = Vector2(350, 500)
+		vbox.add_theme_constant_override("separation", 2)
+		vbox.custom_minimum_size = Vector2(350, 400)
 		shop_items_container.add_child(vbox)
 		
 		var shelf_tex = load("res://images/" + s["icon"])
@@ -2169,7 +2169,7 @@ func generate_shop():
 		var wrap = Control.new()
 		wrap.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		inner.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-		inner.position.y = -30
+		inner.position.y = -15
 		inner.grow_horizontal = Control.GROW_DIRECTION_BOTH
 		wrap.add_child(inner)
 		shelf_panel.add_child(wrap)
@@ -2202,7 +2202,8 @@ func generate_shop():
 			
 			var btn = Button.new()
 			btn.text = "Buy"
-			btn.custom_minimum_size = Vector2(200, 60)
+			btn.set("theme_override_font_sizes/font_size", 36)
+			btn.custom_minimum_size = Vector2(250, 60)
 			btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 			btn.pressed.connect(buy_item.bind(ft, cost, btn, false))
 			btn.gui_input.connect(func(event):
@@ -2232,7 +2233,8 @@ func generate_shop():
 			
 			var btn = Button.new()
 			btn.text = "Buy"
-			btn.custom_minimum_size = Vector2(200, 60)
+			btn.set("theme_override_font_sizes/font_size", 36)
+			btn.custom_minimum_size = Vector2(250, 60)
 			btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 			btn.pressed.connect(buy_item.bind(it, cost, btn, true))
 			btn.gui_input.connect(func(event):
