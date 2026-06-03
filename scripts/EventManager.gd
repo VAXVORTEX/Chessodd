@@ -45,6 +45,7 @@ func trigger_random_event():
 		"lose_items":  result = event_lose_items()
 		_:             result = event_lore()
 	
+	main_node.save_game_state()
 	show_event_ui(result.title, result.desc, result.icons, result.type)
 
 # ── EVENTS ──────────────────────────────────────────────────────────────────

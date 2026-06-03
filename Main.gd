@@ -537,19 +537,19 @@ func load_run(slot: int, data: Dictionary):
 		clear_map_stuff()
 		if is_instance_valid(map_king): map_king.hide()
 		update_ui()
-	
-	if state == GameState.PLAYING and bot_pawns.is_empty() and not player_pawns.is_empty():
-		call_deferred("end_level")
 	else:
-		state = GameState.PLAYING
-		redraw_board_grid()
-		update_ui()
-		board_node.show()
-		shop_panel.hide()
-		clear_map_stuff()
-		if is_instance_valid(map_king): map_king.hide()
-		for lbl in get_tree().get_nodes_in_group("grid_labels"): lbl.show()
-		update_ui()
+		if bot_pawns.is_empty() and not player_pawns.is_empty():
+			call_deferred("end_level")
+		else:
+			state = GameState.PLAYING
+			redraw_board_grid()
+			update_ui()
+			board_node.show()
+			shop_panel.hide()
+			clear_map_stuff()
+			if is_instance_valid(map_king): map_king.hide()
+			for lbl in get_tree().get_nodes_in_group("grid_labels"): lbl.show()
+			update_ui()
 
 func save_game_state():
 	var p_data = []
@@ -2751,10 +2751,34 @@ func start_map_node(node):
 		map_manager.NodeType.TREASURE:
 			var bonus = randi_range(10, 20)
 			coins += bonus
-			vfx_manager.show_floating_text(Vector2(2, 4), "+%d Coins!" % bonus, Color.GOLD)
+			
+			var figure_pool = [PieceType.PAWN, PieceType.KNIGHT, PieceType.BISHOP, PieceType.ROOK, PieceType.QUEEN, PieceType.TELEPAWN, PieceType.CHECKER, PieceType.NIGHTMARE_PAWN, PieceType.BLOOD_QUEEN, PieceType.SPIKED_PAWN]
+			var item_pool = ["knife", "bottle", "boots", "dark_mirror", "hand", "blood_knife", "torch", "finger", "shark_tooth", "hoof", "brain_jar"]
+			var rand_fig = figure_pool[randi() % figure_pool.size()]
+			var rand_item = item_pool[randi() % item_pool.size()]
+			
+			unassigned_items.append(rand_item)
+			
+			var empty_player_spots = []
+			for x in range(COLS):
+				for y in range(ROWS - 3, ROWS):
+					var gp = Vector2(x, y)
+					var occupied = false
+					for p in player_pawns:
+						if is_instance_valid(p) and p.grid_pos == gp: occupied = true
+					if not occupied: empty_player_spots.append(gp)
+			
+			if empty_player_spots.size() > 0:
+				empty_player_spots.shuffle()
+				var spot = empty_player_spots[0]
+				EnemySpawner.spawn_piece(self, spot.x, spot.y, true, rand_fig)
+			
+			save_game_state()
+			
+			vfx_manager.show_floating_text(Vector2(2, 4), "+%d Coins, Figure & Item!" % bonus, Color.GOLD)
 			update_ui()
 			var t = create_tween()
-			t.tween_interval(1.2)
+			t.tween_interval(2.0)
 			t.tween_callback(start_map_mode)
 		map_manager.NodeType.EVENT:
 			event_manager.trigger_random_event()

@@ -84,7 +84,8 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	btn_left.texture_normal = load("res://images/background_option_levelup.png")
 	btn_left.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	btn_left.ignore_texture_size = true
-	btn_left.custom_minimum_size = Vector2(300, 300)
+	btn_left.custom_minimum_size = Vector2(240, 240)
+	btn_left.size = Vector2(240, 240)
 	btn_left.light_mask = 0
 	add_child(btn_left)
 	
@@ -93,7 +94,7 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	l_shad.modulate = Color(0,0,0,0.5)
 	l_shad.position = Vector2(150, 150) + Vector2(15, 20)
 	var btn_scale_factor = 300.0 / l_shad.texture.get_size().x
-	l_shad.scale = Vector2(btn_scale_factor * 0.7, btn_scale_factor * 0.7)
+	l_shad.scale = Vector2((240.0 / l_shad.texture.get_size().x) * 0.85, (240.0 / l_shad.texture.get_size().x) * 0.85)
 	l_shad.show_behind_parent = true
 	btn_left.add_child(l_shad)
 	
@@ -102,7 +103,8 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	btn_right.texture_normal = load("res://images/background_option_levelup.png")
 	btn_right.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	btn_right.ignore_texture_size = true
-	btn_right.custom_minimum_size = Vector2(300, 300)
+	btn_right.custom_minimum_size = Vector2(240, 240)
+	btn_right.size = Vector2(240, 240)
 	btn_right.light_mask = 0
 	add_child(btn_right)
 	
@@ -110,15 +112,15 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	r_shad.texture = load("res://images/background_option_levelup.png")
 	r_shad.modulate = Color(0,0,0,0.5)
 	r_shad.position = Vector2(150, 150) + Vector2(15, 20)
-	r_shad.scale = Vector2(btn_scale_factor * 0.7, btn_scale_factor * 0.7)
+	r_shad.scale = Vector2((240.0 / r_shad.texture.get_size().x) * 0.85, (240.0 / r_shad.texture.get_size().x) * 0.85)
 	r_shad.show_behind_parent = true
 	btn_right.add_child(r_shad)
 	
 	btn_left.size = Vector2(300, 300)
-	btn_left.position = center + Vector2(-290, 110)
+	btn_left.position = center + Vector2(-250, 140)
 	
 	btn_right.size = Vector2(300, 300)
-	btn_right.position = center + Vector2(30, 110)
+	btn_right.position = center + Vector2(50, 140)
 	
 	var lbl_title = Label.new()
 	lbl_title.text = "Level up"
@@ -142,7 +144,7 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	lbl_lvl.set("theme_override_constants/shadow_offset_y", 3)
 	lbl_lvl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_lvl.size = Vector2(160, 160)
-	lbl_lvl.position = center + Vector2(320, -290)
+	lbl_lvl.position = center + Vector2(330, -287)
 	lbl_lvl.rotation_degrees = 10
 	add_child(lbl_lvl)
 	
@@ -156,7 +158,7 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	lbl_or.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_or.custom_minimum_size = Vector2(100, 60)
 	lbl_or.size = Vector2(100, 60)
-	lbl_or.position = center + Vector2(-50, 210)
+	lbl_or.position = center + Vector2(-30, 230)
 	add_child(lbl_or)
 	
 	var data = PieceData.registry.get(_piece_type, {})
