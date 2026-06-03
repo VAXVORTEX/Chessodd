@@ -2109,13 +2109,13 @@ func generate_shop():
 		var vbox = VBoxContainer.new()
 		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 		vbox.add_theme_constant_override("separation", 4)
-		vbox.custom_minimum_size = Vector2(200, 300)
+		vbox.custom_minimum_size = Vector2(350, 500)
 		shop_items_container.add_child(vbox)
 		
 		var shelf_tex = load("res://images/" + s["icon"])
 		
 		var shelf_panel = PanelContainer.new()
-		shelf_panel.custom_minimum_size = Vector2(180, 200)
+		shelf_panel.custom_minimum_size = Vector2(300, 350)
 		shelf_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		if shelf_tex:
 			var style = StyleBoxTexture.new()
@@ -2130,7 +2130,7 @@ func generate_shop():
 		# Wrapper to move items UP over the shelf
 		var wrap = Control.new()
 		wrap.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		inner.position = Vector2(0, -30)
+		inner.position = Vector2(0, -60)
 		wrap.add_child(inner)
 		shelf_panel.add_child(wrap)
 		
@@ -2146,7 +2146,7 @@ func generate_shop():
 			var icon = TextureRect.new()
 			if tex:
 				icon.texture = tex
-			icon.custom_minimum_size = Vector2(64, 64)
+			icon.custom_minimum_size = Vector2(192, 192)
 			icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 			icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 			inner.add_child(icon)
@@ -2154,13 +2154,13 @@ func generate_shop():
 			var info = Label.new()
 			info.text = type_name + "\n$" + str(cost)
 			info.set("theme_override_colors/font_color", Color.WHITE)
-			info.set("theme_override_font_sizes/font_size", 12)
+			info.set("theme_override_font_sizes/font_size", 24)
 			info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			inner.add_child(info)
 			
 			var btn = Button.new()
 			btn.text = "Buy"
-			btn.custom_minimum_size = Vector2(120, 36)
+			btn.custom_minimum_size = Vector2(200, 60)
 			btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 			btn.pressed.connect(buy_item.bind(ft, cost, btn, false))
 			btn.gui_input.connect(func(event):
@@ -2174,7 +2174,7 @@ func generate_shop():
 			
 			var icon = TextureRect.new()
 			icon.texture = inventory_manager.get_item_texture(it)
-			icon.custom_minimum_size = Vector2(96, 96)
+			icon.custom_minimum_size = Vector2(192, 192)
 			icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 			icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 			inner.add_child(icon)
@@ -2182,13 +2182,13 @@ func generate_shop():
 			var info = Label.new()
 			info.text = it.replace("_", " ").capitalize() + "\n$" + str(cost)
 			info.set("theme_override_colors/font_color", Color.WHITE)
-			info.set("theme_override_font_sizes/font_size", 12)
+			info.set("theme_override_font_sizes/font_size", 24)
 			info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			inner.add_child(info)
 			
 			var btn = Button.new()
 			btn.text = "Buy"
-			btn.custom_minimum_size = Vector2(120, 36)
+			btn.custom_minimum_size = Vector2(200, 60)
 			btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 			btn.pressed.connect(buy_item.bind(it, cost, btn, true))
 			btn.gui_input.connect(func(event):
