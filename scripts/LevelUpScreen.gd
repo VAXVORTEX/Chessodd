@@ -8,6 +8,9 @@ var _piece_type: int
 var _is_player: bool
 var _level_num: int
 
+var custom_tooltip: PanelContainer
+var is_tooltip_active = false
+
 signal hp_upgraded
 signal atk_upgraded
 
@@ -43,6 +46,25 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	add_child(bg)
 	
 	var figure_tex = PieceData.get_piece_texture(_piece_type, _is_player)
+	
+	var center = get_viewport_rect().size / 2.0
+	pivot_offset = center
+	
+	bg.size = Vector2(800, 800)
+	bg.position = center - (bg.size / 2.0)
+	
+	# Drop Shadow for figure (Sibling, not child, so it isn't clipped/scaled weirdly)
+	var shadow = Sprite2D.new()
+	shadow.name = "DropShadow"
+	if figure_tex:
+		shadow.texture = figure_tex
+	shadow.modulate = Color(0, 0, 0, 0.5)
+	# Center figure is offset by Vector2(20, 20).
+	shadow.position = center + Vector2(20, 20) + Vector2(20, 30) # Shadow offset relative to figure center
+	shadow.scale = Vector2(0.6, 0.6)
+	shadow.z_index = -1
+	add_child(shadow)
+	
 	var figure_icon = TextureRect.new()
 	figure_icon.name = "FigureIcon"
 	if figure_tex:
@@ -51,81 +73,64 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	figure_icon.custom_minimum_size = Vector2(128, 128)
 	figure_icon.light_mask = 0
 	
-	# Drop Shadow for figure
-	var shadow = TextureRect.new()
-	shadow.name = "DropShadow"
-	if figure_tex:
-		shadow.texture = figure_tex
-	shadow.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	shadow.custom_minimum_size = Vector2(128, 128)
-	shadow.modulate = Color(0, 0, 0, 0.5)
-	shadow.position = Vector2(0, 45) # Lower shadow
-	shadow.scale = Vector2(1.0, 0.5)
-	shadow.show_behind_parent = true
-	figure_icon.add_child(shadow)
-	
-	var center = get_viewport_rect().size / 2.0
-	pivot_offset = center
-	
-	bg.size = Vector2(800, 800)
-	bg.position = center - (bg.size / 2.0)
-	
 	figure_icon.size = Vector2(128, 128)
 	figure_icon.pivot_offset = figure_icon.size / 2.0
 	figure_icon.scale = Vector2(0.6, 0.6)
-	figure_icon.position = center - (figure_icon.size / 2.0) + Vector2(40, 20)
+	figure_icon.position = center - (figure_icon.size / 2.0) + Vector2(20, 20)
 	add_child(figure_icon)
 	
 	btn_left = TextureButton.new()
 	btn_left.name = "ButtonLeft"
 	btn_left.texture_normal = load("res://images/background_option_levelup.png")
-	var l_shad = TextureRect.new()
-	l_shad.texture = load("res://images/background_option_levelup.png")
-	l_shad.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	l_shad.modulate = Color(0,0,0,0.5)
-	l_shad.position = Vector2(15, 20)
-	l_shad.show_behind_parent = true
-	btn_left.add_child(l_shad)
 	btn_left.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	btn_left.ignore_texture_size = true
-	btn_left.custom_minimum_size = Vector2(300, 300) # 30% larger
+	btn_left.custom_minimum_size = Vector2(300, 300)
 	btn_left.light_mask = 0
 	add_child(btn_left)
+	
+	var l_shad = Sprite2D.new()
+	l_shad.texture = load("res://images/background_option_levelup.png")
+	l_shad.modulate = Color(0,0,0,0.5)
+	l_shad.position = Vector2(150, 150) + Vector2(15, 20)
+	var btn_scale_factor = 300.0 / l_shad.texture.get_size().x
+	l_shad.scale = Vector2(btn_scale_factor, btn_scale_factor)
+	l_shad.z_index = -1
+	btn_left.add_child(l_shad)
 	
 	btn_right = TextureButton.new()
 	btn_right.name = "ButtonRight"
 	btn_right.texture_normal = load("res://images/background_option_levelup.png")
-	var r_shad = TextureRect.new()
-	r_shad.texture = load("res://images/background_option_levelup.png")
-	r_shad.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	r_shad.modulate = Color(0,0,0,0.5)
-	r_shad.position = Vector2(15, 20)
-	r_shad.show_behind_parent = true
-	btn_right.add_child(r_shad)
 	btn_right.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	btn_right.ignore_texture_size = true
-	btn_right.custom_minimum_size = Vector2(300, 300) # 30% larger
+	btn_right.custom_minimum_size = Vector2(300, 300)
 	btn_right.light_mask = 0
 	add_child(btn_right)
 	
-	# Moved crystals further left/right
+	var r_shad = Sprite2D.new()
+	r_shad.texture = load("res://images/background_option_levelup.png")
+	r_shad.modulate = Color(0,0,0,0.5)
+	r_shad.position = Vector2(150, 150) + Vector2(15, 20)
+	r_shad.scale = Vector2(btn_scale_factor, btn_scale_factor)
+	r_shad.z_index = -1
+	btn_right.add_child(r_shad)
+	
 	btn_left.size = Vector2(300, 300)
 	btn_left.position = center + Vector2(-280, 160)
 	
 	btn_right.size = Vector2(300, 300)
-	btn_right.position = center + Vector2(60, 160)
+	btn_right.position = center + Vector2(20, 160)
 	
 	var lbl_title = Label.new()
 	lbl_title.text = "Level up"
 	lbl_title.set("theme_override_font_sizes/font_size", 96)
 	lbl_title.set("theme_override_colors/font_color", Color.BLACK)
-	lbl_title.set("theme_override_colors/font_shadow_color", Color(0,0,0,0.4))
+	lbl_title.set("theme_override_colors/font_shadow_color", Color(0,0,0,0.3))
 	lbl_title.set("theme_override_constants/shadow_offset_x", 3)
 	lbl_title.set("theme_override_constants/shadow_offset_y", 3)
 	lbl_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_title.size = Vector2(400, 120)
-	lbl_title.position = center + Vector2(-310, -220) # Lower
-	lbl_title.rotation_degrees = -27 # Better tilt
+	lbl_title.position = center + Vector2(-310, -180) # Down slightly from arrow top
+	lbl_title.rotation_degrees = -27
 	add_child(lbl_title)
 	
 	var lbl_lvl = Label.new()
@@ -137,8 +142,8 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	lbl_lvl.set("theme_override_constants/shadow_offset_y", 3)
 	lbl_lvl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_lvl.size = Vector2(160, 160)
-	lbl_lvl.position = center + Vector2(350, -260)
-	lbl_lvl.rotation_degrees = 15 # Angled to match the bubble
+	lbl_lvl.position = center + Vector2(330, -260)
+	lbl_lvl.rotation_degrees = 0
 	add_child(lbl_lvl)
 	
 	var lbl_or = Label.new()
@@ -150,7 +155,7 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	lbl_or.set("theme_override_constants/shadow_offset_y", 2)
 	lbl_or.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_or.size = Vector2(100, 60)
-	lbl_or.position = center + Vector2(-50, 240)
+	lbl_or.position = center + Vector2(-30, 260)
 	add_child(lbl_or)
 	
 	var data = PieceData.registry.get(_piece_type, {})
@@ -168,11 +173,37 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	lbl_name.set("theme_override_constants/shadow_offset_y", 4)
 	lbl_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_name.size = Vector2(600, 80)
-	lbl_name.position = center + Vector2(-300 + 40, 180) # Perfectly centered relative to figure (+40 offset)
+	lbl_name.position = center + Vector2(-300 + 20, 100) # Perfect align under figure
 	add_child(lbl_name)
 	
 	figure_icon.mouse_filter = Control.MOUSE_FILTER_PASS
-	figure_icon.tooltip_text = p_desc
+	
+	# Dynamic Tooltip
+	custom_tooltip = PanelContainer.new()
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0.8)
+	style.border_width_bottom = 2; style.border_width_left = 2; style.border_width_right = 2; style.border_width_top = 2
+	style.border_color = Color.WHITE
+	custom_tooltip.add_theme_stylebox_override("panel", style)
+	custom_tooltip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	custom_tooltip.z_index = 500
+	custom_tooltip.hide()
+	
+	var tt_margin = MarginContainer.new()
+	tt_margin.add_theme_constant_override("margin_left", 8)
+	tt_margin.add_theme_constant_override("margin_right", 8)
+	tt_margin.add_theme_constant_override("margin_top", 8)
+	tt_margin.add_theme_constant_override("margin_bottom", 8)
+	custom_tooltip.add_child(tt_margin)
+	
+	var tt_lbl = Label.new()
+	tt_lbl.text = p_desc
+	tt_lbl.set("theme_override_font_sizes/font_size", 24)
+	tt_margin.add_child(tt_lbl)
+	add_child(custom_tooltip)
+	
+	figure_icon.mouse_entered.connect(func(): is_tooltip_active = true; custom_tooltip.show())
+	figure_icon.mouse_exited.connect(func(): is_tooltip_active = false; custom_tooltip.hide())
 	
 	# Left button (HP)
 	var tex_hp = TextureRect.new()
@@ -182,7 +213,7 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	tex_hp.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	tex_hp.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	tex_hp.size = Vector2(100, 100)
-	tex_hp.position = Vector2(67, 67) # Centered in 234x234
+	tex_hp.position = Vector2(100, 100)
 	btn_left.add_child(tex_hp)
 	
 	var lbl_hp = Label.new()
@@ -205,7 +236,7 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	tex_atk.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	tex_atk.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	tex_atk.size = Vector2(100, 100)
-	tex_atk.position = Vector2(67, 67) # Centered in 234x234
+	tex_atk.position = Vector2(100, 100)
 	btn_right.add_child(tex_atk)
 	
 	var lbl_atk = Label.new()
@@ -225,3 +256,8 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	
 	btn_left.pressed.connect(func(): hp_upgraded.emit())
 	btn_right.pressed.connect(func(): atk_upgraded.emit())
+
+func _process(_delta):
+	if is_tooltip_active and is_instance_valid(custom_tooltip):
+		custom_tooltip.global_position = get_global_mouse_position() + Vector2(15, 15)
+
