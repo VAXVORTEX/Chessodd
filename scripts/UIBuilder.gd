@@ -813,8 +813,9 @@ static func create_ui(main: Node):
 	gy_margin.add_theme_constant_override("margin_left", 8)
 	gy_margin.add_theme_constant_override("margin_right", 8)
 	gy_scroll.add_child(gy_margin)
-	main.graveyard_container = HBoxContainer.new()
-	main.graveyard_container.add_theme_constant_override("separation", -60)
+	main.graveyard_container = HFlowContainer.new()
+	main.graveyard_container.add_theme_constant_override("h_separation", 10)
+	main.graveyard_container.add_theme_constant_override("v_separation", 10)
 	gy_margin.add_child(main.graveyard_container)
 
 	main.ui_layer.move_child(hud_panel, -1)

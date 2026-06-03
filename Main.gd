@@ -5,7 +5,7 @@ const CELL_SIZE_V: Vector2 = Vector2(130, 130)
 @export var CELL_SPACING: Vector2 = Vector2(4, 4)
 const COLS = 5
 const ROWS = 8
-var BOARD_OFFSET: Vector2 = Vector2(650, 60)
+var BOARD_OFFSET: Vector2 = Vector2(650, 20)
 
 enum PieceType { PAWN, KNIGHT, BISHOP, KING, ROCK, POOP, ROOK, QUEEN, SPIKED_PAWN, EVIL_EYE, BOSS_DEADKING, BOSS_HEAD, BOSS_BODY, BOMB_BARREL, TELEPAWN, NIGHTMARE_PAWN, CHECKER, BLOOD_QUEEN, TICK, FIGURECATCHER, BEAR, FUNGUS, SPORE, WOLF }
 enum GameState { PLAYING, SHOP, TARGETING_SACRIFICE, TARGETING_DARK_MIRROR, TARGETING_HAND, MAP, TARGETING_BLOOD_KNIFE, TARGETING_TORCH, TARGETING_FINGER, MAIN_MENU, SAVE_SELECTION }
@@ -709,9 +709,66 @@ func populate_gy_container(container: Control, list: Array):
 		)
 		container.add_child(tex_rect)
 
+func populate_roster_container(container: Control, list: Array):
+	for child in container.get_children():
+		child.queue_free()
+	
+	var unbenched_count = 0
+	for p in list:
+		if is_instance_valid(p) and not p.get_meta("is_benched"):
+			unbenched_count += 1
+			
+	for p in list:
+		if not is_instance_valid(p): continue
+		
+		var panel = PanelContainer.new()
+		panel.custom_minimum_size = Vector2(64, 84)
+		
+		var style = StyleBoxFlat.new()
+		var is_benched = p.get_meta("is_benched")
+		style.bg_color = Color(1.0, 0.2, 0.2, 0.8) if is_benched else Color(0.2, 1.0, 0.2, 0.8)
+		style.set_corner_radius_all(10)
+		panel.add_theme_stylebox_override("panel", style)
+		
+		var btn = TextureButton.new()
+		btn.custom_minimum_size = Vector2(64, 64)
+		btn.texture_normal = p.texture
+		btn.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+		
+		var sf = min(64.0 / p.texture.get_width(), 64.0 / p.texture.get_height()) if p.texture else 1.0
+		# Wait TextureButton ignores scale but stretch mode handles it!
+		btn.ignore_texture_size = true
+		
+		btn.pressed.connect(func():
+			if p.piece_type == PieceType.KING: return # King cannot be benched
+			var currently_benched = p.get_meta("is_benched")
+			if currently_benched and unbenched_count >= 15:
+				return # Cannot unbench if full
+				
+			p.set_meta("is_benched", not currently_benched)
+			if not currently_benched:
+				p.remove_meta("start_pos") # Need new pos when unbenched
+			update_graveyard_ui()
+		)
+		
+		panel.add_child(btn)
+		
+		var lbl = Label.new()
+		lbl.text = "Lvl " + str(p.level)
+		lbl.set("theme_override_font_sizes/font_size", 12)
+		lbl.set("theme_override_colors/font_color", Color.WHITE)
+		lbl.set("theme_override_colors/font_outline_color", Color.BLACK)
+		lbl.set("theme_override_constants/outline_size", 2)
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.position = Vector2(0, 66)
+		lbl.size = Vector2(64, 18)
+		panel.add_child(lbl)
+		
+		container.add_child(panel)
+
 func update_graveyard_ui():
 	if graveyard_container:
-		populate_gy_container(graveyard_container, graveyard)
+		populate_roster_container(graveyard_container, player_pawns)
 	if enemy_graveyard_container:
 		populate_gy_container(enemy_graveyard_container, enemy_graveyard)
 	if graveyard_panel:
@@ -1836,7 +1893,7 @@ func update_info_panel(g_pos):
 					
 					var lbl = Label.new()
 					lbl.text = st.text
-					lbl.set("theme_override_font_sizes/font_size", 16)
+					lbl.set("theme_override_font_sizes/font_size", 12)
 					
 					var hbox = HBoxContainer.new()
 					hbox.add_child(tex_rect)
@@ -2073,7 +2130,7 @@ func generate_shop():
 			var info = Label.new()
 			info.text = type_name + "\n$" + str(cost)
 			info.set("theme_override_colors/font_color", Color.WHITE)
-			info.set("theme_override_font_sizes/font_size", 16)
+			info.set("theme_override_font_sizes/font_size", 12)
 			info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			inner.add_child(info)
 			
@@ -2101,7 +2158,7 @@ func generate_shop():
 			var info = Label.new()
 			info.text = it.replace("_", " ").capitalize() + "\n$" + str(cost)
 			info.set("theme_override_colors/font_color", Color.WHITE)
-			info.set("theme_override_font_sizes/font_size", 16)
+			info.set("theme_override_font_sizes/font_size", 12)
 			info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			inner.add_child(info)
 			
@@ -2126,17 +2183,44 @@ func buy_item(type, cost, btn, is_item):
 			unassigned_items.append(type)
 		else:
 			var empty_spots = []
+			var claimed = []
+			var unbenched_count = 0
+			for p in player_pawns:
+				if is_instance_valid(p):
+					if not p.get_meta("is_benched"):
+						unbenched_count += 1
+					if p.has_meta("start_pos"):
+						claimed.append(p.get_meta("start_pos"))
+						
 			for x in range(COLS):
-				for y in range(ROWS-2, ROWS):
-					if not board.has(Vector2(x, y)):
-						empty_spots.append(Vector2(x, y))
-			if empty_spots.is_empty(): return
+				for y in range(ROWS-3, ROWS):
+					var s = Vector2(x, y)
+					if not s in claimed:
+						empty_spots.append(s)
+			
+			var is_full = unbenched_count >= 15
+			# We don't return if empty, we just bench it!
 			coins -= cost
 			update_ui()
 			btn.disabled = true
 			btn.text = "Sold"
-			var spot = empty_spots[randi() % empty_spots.size()]
-			EnemySpawner.spawn_piece(self, spot.x, spot.y, true, type)
+			var spot = Vector2(-1, -1)
+			if not empty_spots.is_empty():
+				spot = empty_spots[randi() % empty_spots.size()]
+				
+			var p = EnemySpawner.spawn_piece(self, spot.x, spot.y, true, type)
+			if state == GameState.MAP:
+				p.hide()
+			
+			if is_full or empty_spots.is_empty():
+				p.set_meta("is_benched", true)
+				p.remove_meta("start_pos")
+				if board.has(spot) and board[spot] == p: board.erase(spot)
+			else:
+				p.set_meta("is_benched", false)
+				p.set_meta("start_pos", spot)
+				
+			update_graveyard_ui()
 
 func start_next_level(node_info):
 	level = node_info.floor + 1
@@ -2187,18 +2271,18 @@ func start_next_level(node_info):
 	
 	var empty_player_spots = []
 	for x in range(COLS):
-		for y in range(ROWS-2, ROWS):
+		for y in range(ROWS-3, ROWS):
 			empty_player_spots.append(Vector2(x, y))
 			
-	# Remove spots that are claimed by surviving pieces
 	var claimed_spots = []
 	for p in p_pieces:
+		if p.get_meta("is_benched"): continue
+		
 		if p.has_meta("start_pos"):
 			var sp = p.get_meta("start_pos")
-			if sp.y >= ROWS - 2:
+			if sp.y >= ROWS - 3:
 				claimed_spots.append(sp)
 			else:
-				# Invalid start pos (spawned mid combat), remove it so it gets a valid one
 				p.remove_meta("start_pos")
 				
 	empty_player_spots = empty_player_spots.filter(func(s): return not s in claimed_spots)
