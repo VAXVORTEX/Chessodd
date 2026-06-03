@@ -418,6 +418,12 @@ func start_new_run(slot: int):
 	map_manager.generate_map()
 	update_ui()
 	EnemySpawner.spawn_piece(self, 2, ROWS - 1, true, PieceType.KING)
+	EnemySpawner.spawn_piece(self, 0, ROWS - 1, true, PieceType.BISHOP)
+	EnemySpawner.spawn_piece(self, 1, ROWS - 1, true, PieceType.QUEEN)
+	EnemySpawner.spawn_piece(self, 3, ROWS - 1, true, PieceType.KNIGHT)
+	EnemySpawner.spawn_piece(self, 4, ROWS - 1, true, PieceType.ROOK)
+	EnemySpawner.spawn_piece(self, 1, ROWS - 2, true, PieceType.PAWN)
+	EnemySpawner.spawn_piece(self, 3, ROWS - 2, true, PieceType.PAWN)
 	
 	start_map_mode()
 	save_game_state()
@@ -456,14 +462,25 @@ func load_run(slot: int, data: Dictionary):
 			
 	var p_data = data.get("player_pawns", [])
 	if level == 1 and act == 1 and turn_count == 1:
-		p_data = [] # Ignore corrupted saves for new runs
-		#EnemySpawner.spawn_piece(self, 0, ROWS - 1, true, PieceType.KNIGHT)
-		#EnemySpawner.spawn_piece(self, 1, ROWS - 1, true, PieceType.BISHOP)
+		p_data = []
 		EnemySpawner.spawn_piece(self, 2, ROWS - 1, true, PieceType.KING)
-		#EnemySpawner.spawn_piece(self, 3, ROWS - 1, true, PieceType.QUEEN)
-		#EnemySpawner.spawn_piece(self, 4, ROWS - 1, true, PieceType.ROOK)
-		#for i in range(COLS):
-		#	EnemySpawner.spawn_piece(self, i, ROWS - 2, true, PieceType.PAWN)
+		
+		var empty_player_spots = []
+		for x in range(COLS):
+			for y in range(ROWS - 3, ROWS):
+				if not board.has(Vector2(x, y)):
+					empty_player_spots.append(Vector2(x, y))
+		empty_player_spots.shuffle()
+		
+		var starters = [
+			PieceType.PAWN, PieceType.PAWN, 
+			PieceType.BISHOP, PieceType.QUEEN, 
+			PieceType.KNIGHT, PieceType.ROOK
+		]
+		for st in starters:
+			if empty_player_spots.size() > 0:
+				var spot = empty_player_spots.pop_back()
+				EnemySpawner.spawn_piece(self, spot.x, spot.y, true, st)
 			
 	for p in p_data:
 		var pos = Vector2(p.x, p.y)
@@ -2224,6 +2241,10 @@ func start_next_level(node_info):
 	elif node_info.type == map_manager.NodeType.ELITE:
 		num_bots = min(num_bots + 1, 9)
 		num_rocks = 3
+		if obstacle_spots.size() > 0:
+			var spot = obstacle_spots.pop_back()
+			var elite_type = PieceType.BEAR if randf() < 0.5 else PieceType.FUNGUS
+			EnemySpawner.spawn_piece(self, spot.x, spot.y, false, elite_type)
 
 	for i in range(num_rocks):
 		if obstacle_spots.size() > 0:
@@ -2247,15 +2268,29 @@ func start_next_level(node_info):
 				empty_bot_spots.append(Vector2(x, y))
 	empty_bot_spots.shuffle()
 	
-	for i in range(num_bots):
-		if i >= empty_bot_spots.size(): break
-		var spot = empty_bot_spots[i]
-		var btype = PieceType.PAWN
-		if node_info.floor > 1 and randf() < 0.2: btype = PieceType.KNIGHT
-		if node_info.floor > 2 and randf() < 0.2: btype = PieceType.BISHOP
-		if node_info.floor > 3 and randf() < 0.15: btype = PieceType.ROOK
-		if node_info.floor > 4 and randf() < 0.1: btype = PieceType.QUEEN
-		EnemySpawner.spawn_piece(self, spot.x, spot.y, false, btype)
+	# Change to while loop since we pop from empty_bot_spots
+	var spawned_bots = 0
+	while spawned_bots < num_bots and empty_bot_spots.size() > 0:
+		var spot = empty_bot_spots.pop_back()
+		
+		if randf() < 0.7:
+			var unique_choices = [PieceType.TICK, PieceType.FIGURECATCHER, PieceType.WOLF, PieceType.SPORE]
+			var utype = unique_choices[randi() % unique_choices.size()]
+			EnemySpawner.spawn_piece(self, spot.x, spot.y, false, utype)
+			spawned_bots += 1
+			
+			if utype == PieceType.SPORE and empty_bot_spots.size() > 0:
+				var spot2 = empty_bot_spots.pop_back()
+				EnemySpawner.spawn_piece(self, spot2.x, spot2.y, false, PieceType.SPORE)
+				spawned_bots += 1
+		else:
+			var btype = PieceType.PAWN
+			if node_info.floor > 1 and randf() < 0.3: btype = PieceType.KNIGHT
+			if node_info.floor > 2 and randf() < 0.2: btype = PieceType.BISHOP
+			if node_info.floor > 3 and randf() < 0.15: btype = PieceType.ROOK
+			if node_info.floor > 4 and randf() < 0.1: btype = PieceType.QUEEN
+			EnemySpawner.spawn_piece(self, spot.x, spot.y, false, btype)
+			spawned_bots += 1
 		
 	update_graveyard_ui()
 	save_game_state()
