@@ -32,7 +32,10 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	
 	bg = TextureRect.new()
 	bg.name = "BackgroundCircle"
-	bg.texture = load("res://images/screen_ levelup.png")
+	if _piece_type == 3: # King
+		bg.texture = load("res://images/screen_king_levelup.png")
+	else:
+		bg.texture = load("res://images/screen_ levelup.png")
 	bg.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
 	bg.custom_minimum_size = Vector2(800, 800)
 	bg.light_mask = 0
