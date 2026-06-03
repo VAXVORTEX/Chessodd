@@ -83,13 +83,13 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	btn_right.position = center + Vector2(20, 150)
 	
 	# --- Labels for Level Up UI ---
-	var lbl_title = Label.new()
+		var lbl_title = Label.new()
 	lbl_title.text = "NEW LEVEL"
 	lbl_title.set("theme_override_font_sizes/font_size", 48)
 	lbl_title.set("theme_override_colors/font_color", Color.BLACK)
 	lbl_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_title.size = Vector2(400, 60)
-	lbl_title.position = center + Vector2(-300, -200)
+	lbl_title.position = center + Vector2(-150, -250)
 	lbl_title.rotation_degrees = -20
 	add_child(lbl_title)
 	
@@ -99,7 +99,7 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	lbl_lvl.set("theme_override_colors/font_color", Color.BLACK)
 	lbl_lvl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_lvl.size = Vector2(80, 80)
-	lbl_lvl.position = center + Vector2(170, -230)
+	lbl_lvl.position = center + Vector2(240, -160)
 	lbl_lvl.rotation_degrees = 15
 	add_child(lbl_lvl)
 	
@@ -109,50 +109,68 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	lbl_or.set("theme_override_colors/font_color", Color.BLACK)
 	lbl_or.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_or.size = Vector2(100, 60)
-	lbl_or.position = center + Vector2(-50, 180)
+	lbl_or.position = center + Vector2(-50, 230)
 	add_child(lbl_or)
 	
-	var lbl_desc = Label.new()
 	var data = PieceData.registry.get(_piece_type, {})
 	var p_name = data.get("title", "")
 	var p_desc = data.get("desc", "")
 	
-
-
-	lbl_desc.text = p_name + "\n" + p_desc
-	lbl_desc.set("theme_override_font_sizes/font_size", 24)
+	var lbl_desc = Label.new()
+	lbl_desc.text = p_name
+	lbl_desc.set("theme_override_font_sizes/font_size", 28)
 	lbl_desc.set("theme_override_colors/font_color", Color.WHITE)
 	lbl_desc.set("theme_override_colors/font_outline_color", Color.BLACK)
 	lbl_desc.set("theme_override_constants/outline_size", 3)
 	lbl_desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lbl_desc.size = Vector2(500, 100)
-	lbl_desc.position = center + Vector2(-250, -50)
+	lbl_desc.size = Vector2(300, 40)
+	lbl_desc.position = center + Vector2(-150, 10)
 	add_child(lbl_desc)
+	
+	figure_icon.mouse_filter = Control.MOUSE_FILTER_PASS
+	figure_icon.tooltip_text = p_desc
+	
+	# Left button (HP)
+	var hbox_hp = HBoxContainer.new()
+	hbox_hp.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	hbox_hp.alignment = BoxContainer.ALIGNMENT_CENTER
+	hbox_hp.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
 	var lbl_hp = Label.new()
 	lbl_hp.text = "+1 HP"
-	lbl_hp.set("theme_override_font_sizes/font_size", 42)
+	lbl_hp.set("theme_override_font_sizes/font_size", 36)
 	lbl_hp.set("theme_override_colors/font_color", Color.BLACK)
 	lbl_hp.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl_hp.size = Vector2(200, 60)
-	lbl_hp.position = center + Vector2(-220, 280)
-	add_child(lbl_hp)
+	
+	var tex_hp = TextureRect.new()
+	tex_hp.texture = load("res://images/heart.svg")
+	tex_hp.custom_minimum_size = Vector2(36, 36)
+	tex_hp.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	
+	hbox_hp.add_child(lbl_hp)
+	hbox_hp.add_child(tex_hp)
+	btn_left.add_child(hbox_hp)
+	
+	# Right button (ATK)
+	var hbox_atk = HBoxContainer.new()
+	hbox_atk.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	hbox_atk.alignment = BoxContainer.ALIGNMENT_CENTER
+	hbox_atk.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
 	var lbl_atk = Label.new()
 	lbl_atk.text = "+1 ATK"
-	lbl_atk.set("theme_override_font_sizes/font_size", 42)
+	lbl_atk.set("theme_override_font_sizes/font_size", 36)
 	lbl_atk.set("theme_override_colors/font_color", Color.BLACK)
 	lbl_atk.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl_atk.size = Vector2(200, 60)
-	lbl_atk.position = center + Vector2(20, 280)
-	add_child(lbl_atk)
 	
-	btn_left.pressed.connect(func(): hp_upgraded.emit())
-	btn_right.pressed.connect(func(): atk_upgraded.emit())
+	var tex_atk = TextureRect.new()
+	tex_atk.texture = load("res://images/sword.svg")
+	tex_atk.custom_minimum_size = Vector2(36, 36)
+	tex_atk.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	
-	for n in get_tree().get_nodes_in_group("side_menu"):
-		n.hide()
+	hbox_atk.add_child(lbl_atk)
+	hbox_atk.add_child(tex_atk)
+	btn_right.add_child(hbox_atk)
 	
 	var tween = create_tween()
 	tween.tween_property(self, "scale", Vector2.ONE, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
