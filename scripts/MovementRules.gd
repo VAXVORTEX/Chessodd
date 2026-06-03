@@ -131,7 +131,7 @@ static func get_empty_moves(_main, _pawn, _range_bonus: int) -> Array:
 static func get_eye_moves(_main, _pawn, _range_bonus: int) -> Array:
 	return []
 
-static func get_bear_moves(piece, is_player):
+static func get_bear_moves(main, piece, _range_bonus):
 	var moves = []
 	var dirs = [Vector2(0, 2), Vector2(0, -2), Vector2(2, 0), Vector2(-2, 0)]
 	var main = piece.get_tree().get_first_node_in_group("main")
@@ -141,10 +141,10 @@ static func get_bear_moves(piece, is_player):
 			moves.append(p)
 	return moves
 
-static func get_spore_moves(piece, is_player):
+static func get_spore_moves(main, piece, _range_bonus):
 	var moves = []
 	var main = piece.get_tree().get_first_node_in_group("main")
-	var d_y = 1 if not is_player else -1
+	var d_y = 1 if not piece.is_player else -1
 	var p1 = piece.grid_pos + Vector2(0, d_y)
 	if main and main.is_inside(p1): moves.append(p1)
 	if randi() % 2 == 0:

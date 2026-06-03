@@ -82,6 +82,64 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	btn_right.size = Vector2(200, 200)
 	btn_right.position = center + Vector2(20, 150)
 	
+	# --- Labels for Level Up UI ---
+	var lbl_title = Label.new()
+	lbl_title.text = "Level Up"
+	lbl_title.set("theme_override_font_sizes/font_size", 48)
+	lbl_title.set("theme_override_colors/font_color", Color.WHITE)
+	lbl_title.set("theme_override_colors/font_outline_color", Color.BLACK)
+	lbl_title.set("theme_override_constants/outline_size", 4)
+	lbl_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl_title.size = Vector2(400, 60)
+	lbl_title.position = center + Vector2(-200, -320)
+	add_child(lbl_title)
+	
+	var lbl_lvl = Label.new()
+	lbl_lvl.text = str(_level_num)
+	lbl_lvl.set("theme_override_font_sizes/font_size", 40)
+	lbl_lvl.set("theme_override_colors/font_color", Color.BLACK)
+	lbl_lvl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl_lvl.size = Vector2(80, 80)
+	lbl_lvl.position = center + Vector2(170, -220)
+	add_child(lbl_lvl)
+	
+	var lbl_desc = Label.new()
+	var t_key = TranslationManager.get_piece_name_key(_piece_type)
+	var p_name = TranslationManager.translate(t_key)
+	var p_desc = TranslationManager.translate("desc_" + t_key)
+	if p_desc == "desc_" + t_key: # Fallback
+		var data = PieceData.registry.get(_piece_type, {})
+		p_name = data.get("title", "")
+		p_desc = data.get("desc", "")
+	lbl_desc.text = p_name + "\n" + p_desc
+	lbl_desc.set("theme_override_font_sizes/font_size", 24)
+	lbl_desc.set("theme_override_colors/font_color", Color.WHITE)
+	lbl_desc.set("theme_override_colors/font_outline_color", Color.BLACK)
+	lbl_desc.set("theme_override_constants/outline_size", 3)
+	lbl_desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl_desc.size = Vector2(500, 100)
+	lbl_desc.position = center + Vector2(-250, -50)
+	add_child(lbl_desc)
+	
+	var lbl_hp = Label.new()
+	lbl_hp.text = "+1 HP"
+	lbl_hp.set("theme_override_font_sizes/font_size", 42)
+	lbl_hp.set("theme_override_colors/font_color", Color.BLACK)
+	lbl_hp.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl_hp.size = Vector2(200, 60)
+	lbl_hp.position = center + Vector2(-220, 280)
+	add_child(lbl_hp)
+	
+	var lbl_atk = Label.new()
+	lbl_atk.text = "+1 ATK"
+	lbl_atk.set("theme_override_font_sizes/font_size", 42)
+	lbl_atk.set("theme_override_colors/font_color", Color.BLACK)
+	lbl_atk.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl_atk.size = Vector2(200, 60)
+	lbl_atk.position = center + Vector2(20, 280)
+	add_child(lbl_atk)
+	
 	btn_left.pressed.connect(func(): hp_upgraded.emit())
 	btn_right.pressed.connect(func(): atk_upgraded.emit())
 	

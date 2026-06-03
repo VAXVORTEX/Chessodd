@@ -5,7 +5,7 @@ const CELL_SIZE_V: Vector2 = Vector2(130, 130)
 @export var CELL_SPACING: Vector2 = Vector2(4, 4)
 const COLS = 5
 const ROWS = 8
-var BOARD_OFFSET: Vector2 = Vector2(635, 60)
+var BOARD_OFFSET: Vector2 = Vector2(675, 60)
 
 enum PieceType { PAWN, KNIGHT, BISHOP, KING, ROCK, POOP, ROOK, QUEEN, SPIKED_PAWN, EVIL_EYE, BOSS_DEADKING, BOSS_HEAD, BOSS_BODY, BOMB_BARREL, TELEPAWN, NIGHTMARE_PAWN, CHECKER, BLOOD_QUEEN, TICK, FIGURECATCHER, BEAR, FUNGUS, SPORE, WOLF }
 enum GameState { PLAYING, SHOP, TARGETING_SACRIFICE, TARGETING_DARK_MIRROR, TARGETING_HAND, MAP, TARGETING_BLOOD_KNIFE, TARGETING_TORCH, TARGETING_FINGER, MAIN_MENU, SAVE_SELECTION }
@@ -162,6 +162,7 @@ func _notification(what):
 
 
 func _setup_visuals():
+	RenderingServer.set_default_clear_color(Color("#2e4626"))
 	var game_bg = TextureRect.new()
 	game_bg.texture = load("res://images/forest_bg.png")
 	game_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -2283,6 +2284,17 @@ func start_next_level(node_info):
 				var spot2 = empty_bot_spots.pop_back()
 				EnemySpawner.spawn_piece(self, spot2.x, spot2.y, false, PieceType.SPORE)
 				spawned_bots += 1
+				
+		# If this is the last bot and NO other bots spawned except Spores, force spawn something else
+		var is_last = (spawned_bots >= num_bots or empty_bot_spots.size() == 0)
+		var only_spores = true
+		for b in bot_pawns:
+			if is_instance_valid(b) and b.piece_type != PieceType.SPORE:
+				only_spores = false
+		if is_last and only_spores and empty_bot_spots.size() > 0:
+			var spot3 = empty_bot_spots.pop_back()
+			EnemySpawner.spawn_piece(self, spot3.x, spot3.y, false, PieceType.WOLF if randf() < 0.5 else PieceType.PAWN)
+			spawned_bots += 1
 		else:
 			var btype = PieceType.PAWN
 			if node_info.floor > 1 and randf() < 0.3: btype = PieceType.KNIGHT
@@ -2639,8 +2651,12 @@ func show_level_up_screen():
 	is_levelup_active = true
 	
 	var valid_pawns = []
+	var c_node = map_manager.get_node_by_id(map_manager.current_node_id)
+	var is_boss_node = c_node and c_node.type == map_manager.NodeType.BOSS
 	for p in player_pawns:
 		if is_instance_valid(p):
+			if p.piece_type == PieceType.KING and not is_boss_node:
+				continue
 			valid_pawns.append(p)
 	if valid_pawns.is_empty():
 		is_levelup_active = false
