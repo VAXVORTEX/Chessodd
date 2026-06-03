@@ -286,6 +286,8 @@ static func process_bot_turn(main: Node) -> bool:
 	for bot in main.bot_pawns:
 		if not is_instance_valid(bot): continue
 		if bot.current_cooldown > 0: continue
+		if bot.has_meta("is_obstacle"): continue
+		if bot.has_meta("is_boss") and bot.get_meta("is_boss"): continue
 		
 		var moves = main.get_valid_moves(bot)
 		var currently_threatened = player_threats.has(bot.grid_pos)
@@ -301,7 +303,10 @@ static func process_bot_turn(main: Node) -> bool:
 				var val = data.get("target_val", 20) if data else 20
 				score += val
 			elif target and target.has_meta("is_obstacle") and target.piece_type == main.PieceType.POOP:
-				score += 5
+				if bot.attack_damage > 0 or bot.piece_type == 22:
+					score += 5
+				else:
+					score -= 50
 			elif target and target.piece_type == main.PieceType.BOMB_BARREL:
 				score -= 30
 				

@@ -1633,6 +1633,20 @@ func perform_action(piece, target_pos):
 				target_piece.poison_stacks += 1
 				target_piece.attack_damage = max(0, target_piece.attack_damage - 1)
 				vfx_manager.show_floating_text(target_pos, "POISON +1, ATK -1", Color.PURPLE)
+			if is_instance_valid(piece) and piece.piece_type == PieceType.FIGURECATCHER:
+				target_piece.bleed_stacks += 1
+				vfx_manager.show_floating_text(target_pos, "+1 BLEED", Color.DARK_RED)
+			if is_instance_valid(piece) and piece.piece_type == PieceType.BEAR:
+				var push_dir = (target_pos - g_pos).normalized()
+				push_dir = Vector2(round(push_dir.x), round(push_dir.y))
+				var push_to = target_pos + push_dir
+				if is_inside(push_to) and not board.has(push_to):
+					board.erase(target_pos)
+					target_piece.grid_pos = push_to
+					board[push_to] = target_piece
+					var push_tween = create_tween()
+					push_tween.tween_property(target_piece, "position", push_to * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.15)
+					vfx_manager.show_floating_text(push_to, "KNOCKBACK!", Color.ORANGE)
 		
 		if is_instance_valid(target_piece) and target_piece.has_spikes:
 			take_damage(piece, 1)
@@ -1952,7 +1966,15 @@ func update_info_panel(g_pos):
 			info_stats.set("theme_override_colors/font_color", Color.WHITE)
 			
 		if found.has_meta("is_obstacle") or found.piece_type == PieceType.CHECKER:
-			info_stats.modulate.a = 1
+			if found.piece_type == PieceType.ROCK:
+				info_stats.text = ""
+				info_stats.modulate.a = 0
+			elif found.piece_type == PieceType.POOP:
+				info_stats.text = "%d HP" % found.current_hp
+				info_stats.modulate.a = 1
+			else:
+				info_stats.text = "%d HP" % found.current_hp
+				info_stats.modulate.a = 1
 			info_item_slots.modulate.a = 0
 			if info_tex.has_node("InfoStackedChecker"):
 				info_tex.get_node("InfoStackedChecker").queue_free()
@@ -2141,11 +2163,14 @@ func generate_shop():
 		var inner = VBoxContainer.new()
 		inner.alignment = BoxContainer.ALIGNMENT_CENTER
 		inner.add_theme_constant_override("separation", 6)
+		inner.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		
 		# Wrapper to move items UP over the shelf
 		var wrap = Control.new()
 		wrap.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		inner.position = Vector2(0, -20)
+		inner.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+		inner.position.y = -30
+		inner.grow_horizontal = Control.GROW_DIRECTION_BOTH
 		wrap.add_child(inner)
 		shelf_panel.add_child(wrap)
 		

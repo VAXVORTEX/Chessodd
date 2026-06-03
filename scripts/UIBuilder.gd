@@ -658,7 +658,7 @@ static func create_ui(main: Node):
 			reroll_btn.text = "Rerolled"
 			main.generate_shop()
 	)
-	reroll_btn.position = Vector2(1320, 150) # Right Top symmetric
+	reroll_btn.position = Vector2(100, 100) # Right Top symmetric
 	main.shop_panel.add_child(reroll_btn)
 	
 	var shop_start_btn = Button.new()

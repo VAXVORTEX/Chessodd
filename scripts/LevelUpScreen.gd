@@ -117,7 +117,7 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	btn_right.add_child(r_shad)
 	
 	btn_left.size = Vector2(300, 300)
-	btn_left.position = center + Vector2(-250, 140)
+	btn_left.position = center + Vector2(-270, 140)
 	
 	btn_right.size = Vector2(300, 300)
 	btn_right.position = center + Vector2(50, 140)
@@ -144,7 +144,7 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	lbl_lvl.set("theme_override_constants/shadow_offset_y", 3)
 	lbl_lvl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_lvl.size = Vector2(160, 160)
-	lbl_lvl.position = center + Vector2(330, -287)
+	lbl_lvl.position = center + Vector2(328, -285)
 	lbl_lvl.rotation_degrees = 10
 	add_child(lbl_lvl)
 	
