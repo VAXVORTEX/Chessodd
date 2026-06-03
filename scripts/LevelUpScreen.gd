@@ -83,7 +83,7 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	btn_right.position = center + Vector2(20, 150)
 	
 	# --- Labels for Level Up UI ---
-		var lbl_title = Label.new()
+	var lbl_title = Label.new()
 	lbl_title.text = "NEW LEVEL"
 	lbl_title.set("theme_override_font_sizes/font_size", 48)
 	lbl_title.set("theme_override_colors/font_color", Color.BLACK)

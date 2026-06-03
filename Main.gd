@@ -401,7 +401,7 @@ func start_new_run(slot: int):
 	main_menu_panel.hide()
 	save_slots_panel.hide()
 	board_node.show()
-	graveyard_panel.show()
+	if graveyard_panel: graveyard_panel.hide() # removed
 	
 	blood_hazards.clear()
 	graveyard.clear()
@@ -437,7 +437,7 @@ func load_run(slot: int, data: Dictionary):
 	main_menu_panel.hide()
 	save_slots_panel.hide()
 	board_node.show()
-	graveyard_panel.show()
+	if graveyard_panel: graveyard_panel.hide() # removed
 	coins = data.get("coins", 5)
 	any_player_piece_died = data.get("any_player_piece_died", false)
 	level = data.get("level", 1)
@@ -1920,7 +1920,7 @@ func update_info_panel(g_pos):
 			info_stats.set("theme_override_colors/font_color", Color.WHITE)
 			
 		if found.has_meta("is_obstacle") or found.piece_type == PieceType.CHECKER:
-			info_stats.modulate.a = 0 if found.has_meta("is_obstacle") else 1
+			info_stats.modulate.a = 1
 			info_item_slots.modulate.a = 0
 			if info_tex.has_node("InfoStackedChecker"):
 				info_tex.get_node("InfoStackedChecker").queue_free()
