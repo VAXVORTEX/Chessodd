@@ -117,10 +117,7 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	var p_name = data.get("title", "")
 	var p_desc = data.get("desc", "")
 	
-	# Try to find a valid key by looking through TranslationManager if possible
-	# But using registry directly is safer
-	if TranslationManager.has_method("get_piece_name"):
-		pass # We could try to translate, but this fallback is safest for now
+
 
 	lbl_desc.text = p_name + "\n" + p_desc
 	lbl_desc.set("theme_override_font_sizes/font_size", 24)
