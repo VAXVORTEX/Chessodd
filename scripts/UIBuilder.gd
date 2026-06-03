@@ -765,7 +765,7 @@ static func create_ui(main: Node):
 	main.graveyard_panel.add_theme_stylebox_override("panel", g_style)
 	main.graveyard_panel.custom_minimum_size = Vector2(0, 0)
 	main.graveyard_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	main.graveyard_panel.show()
+	# main.graveyard_panel.show() hidden intentionally
 	right_vbox.add_child(main.graveyard_panel)
 	
 	var gy_vbox = VBoxContainer.new()

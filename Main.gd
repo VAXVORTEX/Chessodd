@@ -773,7 +773,7 @@ func update_graveyard_ui():
 	if enemy_graveyard_container:
 		populate_gy_container(enemy_graveyard_container, enemy_graveyard)
 	if graveyard_panel:
-		graveyard_panel.visible = (state != GameState.MAP and state != GameState.MAIN_MENU)
+		graveyard_panel.visible = false
 
 func update_ui():
 	coins_label.text = "Coins: %d" % coins
@@ -893,7 +893,7 @@ func can_move_or_attack(pos, is_player):
 	if not board.has(pos): return true
 	var p = board[pos]
 	if p.piece_type == PieceType.CHECKER and p.is_player == is_player: return true
-	if p.has_meta("is_obstacle"): return p.piece_type == PieceType.POOP or p.piece_type == PieceType.BOMB_BARREL
+	if p.has_meta("is_obstacle"): return p.piece_type == PieceType.POOP or p.piece_type == PieceType.BOMB_BARREL or p.piece_type == 21 or p.piece_type == 22
 	return p.is_player != is_player
 
 func get_valid_moves(pawn):
@@ -1367,6 +1367,16 @@ func take_damage(piece, amt, attacker = null):
 			vfx_manager.show_floating_text(attacker.grid_pos, "+%d HP" % heal_amt, Color.RED)
 			update_ui()
 			
+		if piece.piece_type == 22: # Spore explosion
+			var g = piece.grid_pos
+			vfx_manager.show_floating_text(g, "POISON BURST!", Color.GREEN)
+			for dx in range(-1, 2):
+				for dy in range(-1, 2):
+					var t = g + Vector2(dx, dy)
+					if is_inside(t) and board.has(t) and board[t] != piece:
+						if is_instance_valid(board[t]):
+							board[t].is_poisoned = true
+							
 		if piece.piece_type == PieceType.BOSS_DEADKING:
 			var g = piece.grid_pos
 			board.erase(g)
@@ -1541,6 +1551,13 @@ func perform_action(piece, target_pos):
 	var target_piece = board.get(target_pos)
 	
 	if target_piece:
+		if piece.piece_type == 22: # Spore crashes into something
+			vfx_manager.show_floating_text(target_pos, "SPLAT!", Color.GREEN)
+			take_damage(piece, 9999) # Die and trigger explosion
+			var tween = create_tween()
+			end_turn_with_tween(null, target_pos, tween, piece.is_player)
+			return
+			
 		if target_piece.piece_type == PieceType.CHECKER and target_piece.is_player == piece.is_player:
 			if piece.has_meta("is_clone"):
 				vfx_manager.show_floating_text(piece.grid_pos, "SPLAT!", Color.AQUA)
