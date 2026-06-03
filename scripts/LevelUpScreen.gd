@@ -84,33 +84,44 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	
 	# --- Labels for Level Up UI ---
 	var lbl_title = Label.new()
-	lbl_title.text = "Level Up"
+	lbl_title.text = "NEW LEVEL"
 	lbl_title.set("theme_override_font_sizes/font_size", 48)
-	lbl_title.set("theme_override_colors/font_color", Color.WHITE)
-	lbl_title.set("theme_override_colors/font_outline_color", Color.BLACK)
-	lbl_title.set("theme_override_constants/outline_size", 4)
+	lbl_title.set("theme_override_colors/font_color", Color.BLACK)
 	lbl_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_title.size = Vector2(400, 60)
-	lbl_title.position = center + Vector2(-200, -320)
+	lbl_title.position = center + Vector2(-300, -200)
+	lbl_title.rotation_degrees = -20
 	add_child(lbl_title)
 	
 	var lbl_lvl = Label.new()
 	lbl_lvl.text = str(_level_num)
-	lbl_lvl.set("theme_override_font_sizes/font_size", 40)
+	lbl_lvl.set("theme_override_font_sizes/font_size", 54)
 	lbl_lvl.set("theme_override_colors/font_color", Color.BLACK)
 	lbl_lvl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_lvl.size = Vector2(80, 80)
-	lbl_lvl.position = center + Vector2(170, -220)
+	lbl_lvl.position = center + Vector2(170, -230)
+	lbl_lvl.rotation_degrees = 15
 	add_child(lbl_lvl)
 	
+	var lbl_or = Label.new()
+	lbl_or.text = "OR"
+	lbl_or.set("theme_override_font_sizes/font_size", 42)
+	lbl_or.set("theme_override_colors/font_color", Color.BLACK)
+	lbl_or.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl_or.size = Vector2(100, 60)
+	lbl_or.position = center + Vector2(-50, 180)
+	add_child(lbl_or)
+	
 	var lbl_desc = Label.new()
-	var t_key = TranslationManager.get_piece_name_key(_piece_type)
-	var p_name = TranslationManager.translate(t_key)
-	var p_desc = TranslationManager.translate("desc_" + t_key)
-	if p_desc == "desc_" + t_key: # Fallback
-		var data = PieceData.registry.get(_piece_type, {})
-		p_name = data.get("title", "")
-		p_desc = data.get("desc", "")
+	var data = PieceData.registry.get(_piece_type, {})
+	var p_name = data.get("title", "")
+	var p_desc = data.get("desc", "")
+	
+	# Try to find a valid key by looking through TranslationManager if possible
+	# But using registry directly is safer
+	if TranslationManager.has_method("get_piece_name"):
+		pass # We could try to translate, but this fallback is safest for now
+
 	lbl_desc.text = p_name + "\n" + p_desc
 	lbl_desc.set("theme_override_font_sizes/font_size", 24)
 	lbl_desc.set("theme_override_colors/font_color", Color.WHITE)
