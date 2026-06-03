@@ -7,7 +7,7 @@ const COLS = 5
 const ROWS = 8
 var BOARD_OFFSET: Vector2 = Vector2(635, 60)
 
-enum PieceType { PAWN, KNIGHT, BISHOP, KING, ROCK, POOP, ROOK, QUEEN, SPIKED_PAWN, EVIL_EYE, BOSS_DEADKING, BOSS_HEAD, BOSS_BODY, BOMB_BARREL, TELEPAWN, NIGHTMARE_PAWN, CHECKER, BLOOD_QUEEN }
+enum PieceType { PAWN, KNIGHT, BISHOP, KING, ROCK, POOP, ROOK, QUEEN, SPIKED_PAWN, EVIL_EYE, BOSS_DEADKING, BOSS_HEAD, BOSS_BODY, BOMB_BARREL, TELEPAWN, NIGHTMARE_PAWN, CHECKER, BLOOD_QUEEN, TICK, FIGURECATCHER, BEAR, FUNGUS, SPORE, WOLF }
 enum GameState { PLAYING, SHOP, TARGETING_SACRIFICE, TARGETING_DARK_MIRROR, TARGETING_HAND, MAP, TARGETING_BLOOD_KNIFE, TARGETING_TORCH, TARGETING_FINGER, MAIN_MENU, SAVE_SELECTION }
 
 var board = {}
@@ -255,7 +255,10 @@ func _ready():
 	if not tex_telepawn:
 		var img = Image.load_from_file("res://images/Telepawn.png")
 		if img: tex_telepawn = ImageTexture.create_from_image(img)
-	tex_shop_bg = null
+	tex_shop_bg = load("res://images/forest_shop_bg.png")
+	if not tex_shop_bg:
+		var img = Image.load_from_file("res://images/forest_shop_bg.png")
+		if img: tex_shop_bg = ImageTexture.create_from_image(img)
 	tex_sword = load("res://images/sword.svg")
 	tex_knife = load("res://images/knife.svg")
 	tex_heart = load("res://images/heart.svg")
@@ -830,6 +833,36 @@ func get_valid_moves(pawn):
 	if is_hoof and is_knight: range_bonus += 1
 	return func_call.call(self, pawn, range_bonus)
 
+
+func spawn_piece_at(is_player, type, grid_pos):
+	if board.has(grid_pos): return null
+	
+	var p = Entity.new()
+	p.piece_type = type
+	p.is_player = is_player
+	
+	var data = PieceData.registry.get(type, PieceData.registry[PieceType.PAWN])
+	p.texture = PieceData.get_piece_texture(type, is_player)
+	p.max_hp = data.get("hp_player", 1) if is_player else data.get("hp", 1)
+	p.current_hp = p.max_hp
+	p.attack_damage = data.get("atk_player", 1) if is_player else data.get("atk", 1)
+	if data.get("is_obstacle", false): p.set_meta("is_obstacle", true)
+	if data.get("is_boss", false): p.set_meta("is_boss", true)
+	
+	p.scale = Vector2(0.5, 0.5)
+	
+	var sz = p.texture.get_size() if p.texture else Vector2(1,1)
+	var scale_f = min(CELL_SIZE_V.x / sz.x, CELL_SIZE_V.y / sz.y) * 0.8
+	p.scale = Vector2(scale_f, scale_f)
+	
+	p.grid_pos = grid_pos
+	p.position = grid_pos * CELL_SIZE_V + Vector2(CELL_SIZE_V.x/2.0, CELL_SIZE_V.y/2.0)
+	
+	board_node.add_child(p)
+	board[grid_pos] = p
+	if is_player: player_pawns.append(p)
+	else: bot_pawns.append(p)
+	return p
 
 func spawn_random_piece(is_player, type):
 	var p = Entity.new()

@@ -25,6 +25,8 @@ var bottle_used_this_level: bool = false
 var bleed_stacks: int = 0
 var burn_stacks: int = 0
 var is_poisoned: bool = false
+var atk_down_turns: int = 0
+var stun_turns: int = 0
 
 var tex_bleed = preload("res://images/status_blood.png")
 var tex_burn = preload("res://images/status_fire.png")

@@ -173,5 +173,59 @@ static var registry = {
 		"tex_player": "res://images/bomb_barrel.png",
 		"tex_bot": "res://images/bomb_barrel.png",
 		"movement_func": Callable(MovementRules, "get_empty_moves")
+	},
+	18: {
+		"title": "Tick",
+		"desc": "Moves 1 cell orthogonally. Applies 1 Poison and -1 ATK for 1 turn on hit.",
+		"hp": 1, "atk": 0, "cost": 3, "is_obstacle": false, "is_boss": false,
+		"hp_player": 1, "atk_player": 0, "target_val": 20,
+		"tex_player": "res://images/tick.png",
+		"tex_bot": "res://images/tick.png",
+		"movement_func": Callable(MovementRules, "get_checker_moves")
+	},
+	19: {
+		"title": "Figurecatcher",
+		"desc": "Moves 1 cell in any direction. After killing, becomes inactive for 2 enemy turns.",
+		"hp": 2, "atk": 2, "cost": 5, "is_obstacle": false, "is_boss": false,
+		"hp_player": 2, "atk_player": 2, "target_val": 40,
+		"tex_player": "res://images/figurecatcher.png",
+		"tex_bot": "res://images/figurecatcher.png",
+		"movement_func": Callable(MovementRules, "get_king_moves")
+	},
+	20: {
+		"title": "Bear",
+		"desc": "ALWAYS jumps exactly 2 cells orthogonally.",
+		"hp": 4, "atk": 2, "cost": 5, "is_obstacle": false, "is_boss": false,
+		"hp_player": 4, "atk_player": 2, "target_val": 50,
+		"tex_player": "res://images/bear.png",
+		"tex_bot": "res://images/bear.png",
+		"movement_func": Callable(MovementRules, "get_bear_moves")
+	},
+	21: {
+		"title": "Fungus",
+		"desc": "Immobile. Spawns a Spore 1 cell in front every 2 turns.",
+		"hp": 2, "atk": 0, "cost": 0, "is_obstacle": true, "is_boss": false,
+		"hp_player": 2, "atk_player": 0, "target_val": 15,
+		"tex_player": "res://images/fungus.png",
+		"tex_bot": "res://images/fungus.png",
+		"movement_func": Callable(MovementRules, "get_empty_moves")
+	},
+	22: {
+		"title": "Spore",
+		"desc": "Flies downwards. Decays 1 HP/turn. Breaks & poisons on collision/hit.",
+		"hp": 5, "atk": 0, "cost": 0, "is_obstacle": true, "is_boss": false,
+		"hp_player": 5, "atk_player": 0, "target_val": 5,
+		"tex_player": "res://images/spore.png",
+		"tex_bot": "res://images/spore.png",
+		"movement_func": Callable(MovementRules, "get_spore_moves")
+	},
+	23: {
+		"title": "Wolf",
+		"desc": "Moves in an 'L' shape.",
+		"hp": 2, "atk": 1, "cost": 4, "is_obstacle": false, "is_boss": false,
+		"hp_player": 2, "atk_player": 1, "target_val": 30,
+		"tex_player": "res://images/wolf.png",
+		"tex_bot": "res://images/wolf.png",
+		"movement_func": Callable(MovementRules, "get_knight_moves")
 	}
 }
