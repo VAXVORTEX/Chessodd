@@ -726,7 +726,7 @@ func populate_roster_container(container: Control, list: Array):
 		panel.custom_minimum_size = Vector2(64, 84)
 		
 		var style = StyleBoxFlat.new()
-		var is_benched = p.get_meta("is_benched")
+		var is_benched = p.get_meta("is_benched", false)
 		style.bg_color = Color(1.0, 0.2, 0.2, 0.8) if is_benched else Color(0.2, 1.0, 0.2, 0.8)
 		style.set_corner_radius_all(10)
 		panel.add_theme_stylebox_override("panel", style)
@@ -742,7 +742,7 @@ func populate_roster_container(container: Control, list: Array):
 		
 		btn.pressed.connect(func():
 			if p.piece_type == PieceType.KING: return # King cannot be benched
-			var currently_benched = p.get_meta("is_benched")
+			var currently_benched = p.get_meta("is_benched", false)
 			if currently_benched and unbenched_count >= 15:
 				return # Cannot unbench if full
 				
@@ -1375,7 +1375,7 @@ func take_damage(piece, amt, attacker = null):
 					var t = g + Vector2(dx, dy)
 					if is_inside(t) and board.has(t) and board[t] != piece:
 						if is_instance_valid(board[t]):
-							board[t].is_poisoned = true
+							board[t].poison_stacks += 1
 							
 		if piece.piece_type == PieceType.BOSS_DEADKING:
 			var g = piece.grid_pos
@@ -1899,8 +1899,8 @@ func update_info_panel(g_pos):
 					statuses.append({"tex": load("res://images/status_blood.png"), "text": "Bleed: %d" % found.bleed_stacks, "desc": "Takes 1 damage per stack per cell moved."})
 				if found.burn_stacks > 0:
 					statuses.append({"tex": load("res://images/status_fire.png"), "text": "Burn: %d" % found.burn_stacks, "desc": "Takes 1 damage per stack at the end of each turn."})
-				if found.is_poisoned:
-					statuses.append({"tex": load("res://images/status_poison.png"), "text": "Poisoned", "desc": "Takes 1 damage at the end of its team's turn."})
+				if found.poison_stacks > 0:
+					statuses.append({"tex": load("res://images/status_poison.png"), "text": "Poison: %d" % found.poison_stacks, "desc": "Takes damage equal to stacks at end of turn."})
 					
 				for st in statuses:
 					var tex_rect = TextureRect.new()
@@ -2282,7 +2282,7 @@ func start_next_level(node_info):
 		if is_instance_valid(p):
 			p.bleed_stacks = 0
 			p.burn_stacks = 0
-			p.is_poisoned = false
+			p.poison_stacks = 0
 	for bp in blood_puddles:
 		if is_instance_valid(bp["node"]): bp["node"].queue_free()
 	blood_puddles.clear()

@@ -174,3 +174,6 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	
 	var tween = create_tween()
 	tween.tween_property(self, "scale", Vector2.ONE, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+	btn_left.pressed.connect(func(): hp_upgraded.emit())
+	btn_right.pressed.connect(func(): atk_upgraded.emit())

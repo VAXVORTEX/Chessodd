@@ -24,7 +24,7 @@ var bottle_used_this_level: bool = false
 
 var bleed_stacks: int = 0
 var burn_stacks: int = 0
-var is_poisoned: bool = false
+var poison_stacks: int = 0
 var atk_down_turns: int = 0
 var stun_turns: int = 0
 
@@ -85,7 +85,7 @@ func _draw():
 	var active_statuses = []
 	if bleed_stacks > 0 and tex_bleed: active_statuses.append({"tex": tex_bleed, "text": str(bleed_stacks), "color": Color.RED})
 	if burn_stacks > 0 and tex_burn: active_statuses.append({"tex": tex_burn, "text": str(burn_stacks), "color": Color.ORANGE})
-	if is_poisoned and tex_poison: active_statuses.append({"tex": tex_poison, "text": "", "color": Color.GREEN})
+	if poison_stacks > 0 and tex_poison: active_statuses.append({"tex": tex_poison, "text": str(poison_stacks), "color": Color.GREEN})
 	
 	var total = active_statuses.size()
 	if total == 0: return

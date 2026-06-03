@@ -176,7 +176,7 @@ func update_inventory_screen():
 		
 		var panel = PanelContainer.new()
 		var p_sb = StyleBoxFlat.new()
-		var is_benched = p.get_meta("is_benched")
+		var is_benched = p.get_meta("is_benched", false)
 		p_sb.bg_color = Color(1.0, 0.2, 0.2, 0.8) if is_benched else Color(0.2, 1.0, 0.2, 0.8)
 		p_sb.corner_radius_top_left = 10
 		p_sb.corner_radius_top_right = 10
@@ -277,7 +277,7 @@ func update_inventory_selection():
 	main.inv_piece_stats.text = "%d HP | ATK: %d" % [p.current_hp, p.attack_damage]
 	
 	if main.inv_bench_btn:
-		var is_benched = p.get_meta("is_benched")
+		var is_benched = p.get_meta("is_benched", false)
 		
 		# Disconnect old signals
 		if main.inv_bench_btn.pressed.get_connections().size() > 0:
