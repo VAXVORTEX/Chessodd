@@ -716,7 +716,7 @@ func populate_roster_container(container: Control, list: Array):
 	
 	var unbenched_count = 0
 	for p in list:
-		if is_instance_valid(p) and not p.get_meta("is_benched"):
+		if is_instance_valid(p) and not p.get_meta("is_benched", false):
 			unbenched_count += 1
 			
 	for p in list:
@@ -2205,7 +2205,7 @@ func buy_item(type, cost, btn, is_item):
 			var unbenched_count = 0
 			for p in player_pawns:
 				if is_instance_valid(p):
-					if not p.get_meta("is_benched"):
+					if not p.get_meta("is_benched", false):
 						unbenched_count += 1
 					if p.has_meta("start_pos"):
 						claimed.append(p.get_meta("start_pos"))
@@ -2294,7 +2294,7 @@ func start_next_level(node_info):
 			
 	var claimed_spots = []
 	for p in p_pieces:
-		if p.get_meta("is_benched"): continue
+		if p.get_meta("is_benched", false): continue
 		
 		if p.has_meta("start_pos"):
 			var sp = p.get_meta("start_pos")
