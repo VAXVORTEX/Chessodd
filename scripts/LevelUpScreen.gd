@@ -77,6 +77,18 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	figure_icon.pivot_offset = figure_icon.size / 2.0
 	figure_icon.scale = Vector2(0.6, 0.6)
 	figure_icon.position = center - (figure_icon.size / 2.0) + Vector2(20, 20)
+	
+	var shadow = TextureRect.new()
+	shadow.name = "DropShadow"
+	if figure_tex:
+		shadow.texture = figure_tex
+	shadow.modulate = Color(0, 0, 0, 0.5)
+	shadow.position = Vector2(15, 20)
+	shadow.size = Vector2(128, 128)
+	shadow.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	shadow.show_behind_parent = true
+	figure_icon.add_child(shadow)
+	
 	add_child(figure_icon)
 	
 	btn_left = TextureButton.new()
@@ -93,7 +105,7 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	l_shad.modulate = Color(0,0,0,0.5)
 	l_shad.position = Vector2(150, 150) + Vector2(15, 20)
 	var btn_scale_factor = 300.0 / l_shad.texture.get_size().x
-	l_shad.scale = Vector2(btn_scale_factor, btn_scale_factor)
+	l_shad.scale = Vector2(btn_scale_factor * 0.85, btn_scale_factor * 0.85)
 	l_shad.show_behind_parent = true
 	btn_left.add_child(l_shad)
 	
@@ -110,15 +122,15 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	r_shad.texture = load("res://images/background_option_levelup.png")
 	r_shad.modulate = Color(0,0,0,0.5)
 	r_shad.position = Vector2(150, 150) + Vector2(15, 20)
-	r_shad.scale = Vector2(btn_scale_factor, btn_scale_factor)
+	r_shad.scale = Vector2(btn_scale_factor * 0.85, btn_scale_factor * 0.85)
 	r_shad.show_behind_parent = true
 	btn_right.add_child(r_shad)
 	
 	btn_left.size = Vector2(300, 300)
-	btn_left.position = center + Vector2(-290, 160)
+	btn_left.position = center + Vector2(-290, 140)
 	
 	btn_right.size = Vector2(300, 300)
-	btn_right.position = center + Vector2(30, 160)
+	btn_right.position = center + Vector2(30, 140)
 	
 	var lbl_title = Label.new()
 	lbl_title.text = "Level up"
@@ -129,7 +141,7 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	lbl_title.set("theme_override_constants/shadow_offset_y", 3)
 	lbl_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_title.size = Vector2(400, 120)
-	lbl_title.position = center + Vector2(-310, -138) # Down slightly from arrow top
+	lbl_title.position = center + Vector2(-310, -136) # Down slightly from arrow top
 	lbl_title.rotation_degrees = -27
 	add_child(lbl_title)
 	
@@ -142,8 +154,8 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	lbl_lvl.set("theme_override_constants/shadow_offset_y", 3)
 	lbl_lvl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_lvl.size = Vector2(160, 160)
-	lbl_lvl.position = center + Vector2(280, -220)
-	lbl_lvl.rotation_degrees = 15
+	lbl_lvl.position = center + Vector2(300, -255)
+	lbl_lvl.rotation_degrees = 10
 	add_child(lbl_lvl)
 	
 	var lbl_or = Label.new()
@@ -154,8 +166,9 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	lbl_or.set("theme_override_constants/shadow_offset_x", 2)
 	lbl_or.set("theme_override_constants/shadow_offset_y", 2)
 	lbl_or.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl_or.custom_minimum_size = Vector2(100, 60)
 	lbl_or.size = Vector2(100, 60)
-	lbl_or.position = center + Vector2(-30, 260)
+	lbl_or.position = center + Vector2(-30, 240)
 	add_child(lbl_or)
 	
 	var data = PieceData.registry.get(_piece_type, {})
@@ -172,6 +185,7 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	lbl_name.set("theme_override_constants/shadow_offset_x", 4)
 	lbl_name.set("theme_override_constants/shadow_offset_y", 4)
 	lbl_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl_name.custom_minimum_size = Vector2(600, 80)
 	lbl_name.size = Vector2(600, 80)
 	lbl_name.position = center + Vector2(-300 + 20, 150) # Perfect align under figure
 	add_child(lbl_name)
