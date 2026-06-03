@@ -537,6 +537,9 @@ func load_run(slot: int, data: Dictionary):
 		clear_map_stuff()
 		if is_instance_valid(map_king): map_king.hide()
 		update_ui()
+	
+	if state == GameState.PLAYING and bot_pawns.is_empty() and not player_pawns.is_empty():
+		call_deferred("end_level")
 	else:
 		state = GameState.PLAYING
 		redraw_board_grid()
@@ -574,7 +577,9 @@ func save_game_state():
 		"enemy_graveyard": enemy_graveyard,
 		"bot_pawns": b_data,
 		"current_node_id": map_manager.current_node_id,
-		"map_data": map_manager.map_data
+		"map_data": map_manager.map_data,
+		"pending_upg_x": get_meta("pending_upg_x") if has_meta("pending_upg_x") else -1,
+		"pending_upg_y": get_meta("pending_upg_y") if has_meta("pending_upg_y") else -1
 	}
 	SaveManager.save_game(current_save_slot, data)
 
@@ -2816,13 +2821,28 @@ func show_level_up_screen():
 		is_levelup_active = false
 		start_map_mode()
 		return
-	var upgrade_piece = valid_pawns[randi() % valid_pawns.size()]
+		
+	var upgrade_piece = null
+	if has_meta("pending_upg_x"):
+		var px = get_meta("pending_upg_x")
+		var py = get_meta("pending_upg_y")
+		for p in valid_pawns:
+			if p.grid_pos.x == px and p.grid_pos.y == py:
+				upgrade_piece = p
+				break
+				
+	if not upgrade_piece:
+		upgrade_piece = valid_pawns[randi() % valid_pawns.size()]
+		set_meta("pending_upg_x", upgrade_piece.grid_pos.x)
+		set_meta("pending_upg_y", upgrade_piece.grid_pos.y)
+		save_game_state()
 	
 	var level_up = load("res://scripts/LevelUpScreen.gd").new()
 	ui_layer.add_child(level_up)
 	level_up.setup(upgrade_piece.piece_type, upgrade_piece.is_player, upgrade_piece.level)
 	
 	level_up.hp_upgraded.connect(func():
+		if has_meta("pending_upg_x"): remove_meta("pending_upg_x")
 		apply_piece_upgrade(upgrade_piece, "hp")
 		level_up.queue_free()
 		is_levelup_active = false
@@ -2830,6 +2850,7 @@ func show_level_up_screen():
 	)
 	
 	level_up.atk_upgraded.connect(func():
+		if has_meta("pending_upg_x"): remove_meta("pending_upg_x")
 		apply_piece_upgrade(upgrade_piece, "atk")
 		level_up.queue_free()
 		is_levelup_active = false
