@@ -2721,7 +2721,7 @@ func create_grid_labels():
 		lbl.set("theme_override_colors/font_color", Color(0.5, 0.5, 0.5))
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		lbl.position = Vector2(x * CELL_SIZE_V.x, -50)
+		lbl.position = Vector2(x * CELL_SIZE_V.x, -35)
 		lbl.custom_minimum_size = Vector2(CELL_SIZE_V.x, 40)
 		board_node.add_child(lbl)
 		
