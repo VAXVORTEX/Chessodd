@@ -53,18 +53,6 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	bg.size = Vector2(800, 800)
 	bg.position = center - (bg.size / 2.0)
 	
-	# Drop Shadow for figure (Sibling, not child, so it isn't clipped/scaled weirdly)
-	var shadow = Sprite2D.new()
-	shadow.name = "DropShadow"
-	if figure_tex:
-		shadow.texture = figure_tex
-	shadow.modulate = Color(0, 0, 0, 0.5)
-	# Center figure is offset by Vector2(20, 20).
-	shadow.position = center + Vector2(20, 20) + Vector2(20, 30) # Shadow offset relative to figure center
-	shadow.scale = Vector2(0.6, 0.6)
-	shadow.z_index = -1
-	add_child(shadow)
-	
 	var figure_icon = TextureRect.new()
 	figure_icon.name = "FigureIcon"
 	if figure_tex:
@@ -78,16 +66,16 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	figure_icon.scale = Vector2(0.6, 0.6)
 	figure_icon.position = center - (figure_icon.size / 2.0) + Vector2(20, 20)
 	
-	var shadow = TextureRect.new()
-	shadow.name = "DropShadow"
+	var shadow_rect = TextureRect.new()
+	shadow_rect.name = "DropShadow"
 	if figure_tex:
-		shadow.texture = figure_tex
-	shadow.modulate = Color(0, 0, 0, 0.5)
-	shadow.position = Vector2(15, 20)
-	shadow.size = Vector2(128, 128)
-	shadow.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	shadow.show_behind_parent = true
-	figure_icon.add_child(shadow)
+		shadow_rect.texture = figure_tex
+	shadow_rect.modulate = Color(0, 0, 0, 0.5)
+	shadow_rect.position = Vector2(15, 20)
+	shadow_rect.size = Vector2(128, 128)
+	shadow_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	shadow_rect.show_behind_parent = true
+	figure_icon.add_child(shadow_rect)
 	
 	add_child(figure_icon)
 	
