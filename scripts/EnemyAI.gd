@@ -13,7 +13,25 @@ static func process_bot_turn(main: Node) -> bool:
 	for b in main.bot_pawns:
 		if is_instance_valid(b) and b.current_cooldown > 0:
 			b.current_cooldown -= 1
-	
+		
+		# Fungus Spore Spawning Logic
+		if is_instance_valid(b) and b.piece_type == 21: # PieceType.FUNGUS
+			if not b.has_meta("spore_timer"):
+				b.set_meta("spore_timer", 1)
+			else:
+				var t = b.get_meta("spore_timer")
+				if t >= 2:
+					var d_y = 1 if not b.is_player else -1
+					var p1 = b.grid_pos + Vector2(0, d_y)
+					if main.is_inside(p1) and not main.board.has(p1):
+						var EnemySpawner = load("res://scripts/EnemySpawner.gd")
+						var spore = EnemySpawner.spawn_piece(main, p1.x, p1.y, b.is_player, 22) # SPORE
+						if spore:
+							main.vfx_manager.show_floating_text(p1, "SPORED!", Color.GREEN)
+					b.set_meta("spore_timer", 1)
+				else:
+					b.set_meta("spore_timer", t + 1)
+					
 	var player_threats = []
 	for p in main.player_pawns:
 		if is_instance_valid(p):

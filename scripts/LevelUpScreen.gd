@@ -73,32 +73,46 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	figure_icon.size = Vector2(128, 128)
 	figure_icon.pivot_offset = figure_icon.size / 2.0
 	figure_icon.scale = Vector2(0.6, 0.6)
-	figure_icon.position = center - (figure_icon.size / 2.0) + Vector2(0, 20)
+	figure_icon.position = center - (figure_icon.size / 2.0) + Vector2(40, 20)
 	add_child(figure_icon)
 	
 	btn_left = TextureButton.new()
 	btn_left.name = "ButtonLeft"
 	btn_left.texture_normal = load("res://images/background_option_levelup.png")
+	var l_shad = TextureRect.new()
+	l_shad.texture = load("res://images/background_option_levelup.png")
+	l_shad.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	l_shad.modulate = Color(0,0,0,0.5)
+	l_shad.position = Vector2(15, 20)
+	l_shad.show_behind_parent = true
+	btn_left.add_child(l_shad)
 	btn_left.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	btn_left.ignore_texture_size = true
-	btn_left.custom_minimum_size = Vector2(234, 234) # 30% larger
+	btn_left.custom_minimum_size = Vector2(300, 300) # 30% larger
 	btn_left.light_mask = 0
 	add_child(btn_left)
 	
 	btn_right = TextureButton.new()
 	btn_right.name = "ButtonRight"
 	btn_right.texture_normal = load("res://images/background_option_levelup.png")
+	var r_shad = TextureRect.new()
+	r_shad.texture = load("res://images/background_option_levelup.png")
+	r_shad.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	r_shad.modulate = Color(0,0,0,0.5)
+	r_shad.position = Vector2(15, 20)
+	r_shad.show_behind_parent = true
+	btn_right.add_child(r_shad)
 	btn_right.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	btn_right.ignore_texture_size = true
-	btn_right.custom_minimum_size = Vector2(234, 234) # 30% larger
+	btn_right.custom_minimum_size = Vector2(300, 300) # 30% larger
 	btn_right.light_mask = 0
 	add_child(btn_right)
 	
 	# Moved crystals further left/right
-	btn_left.size = Vector2(234, 234)
+	btn_left.size = Vector2(300, 300)
 	btn_left.position = center + Vector2(-280, 160)
 	
-	btn_right.size = Vector2(234, 234)
+	btn_right.size = Vector2(300, 300)
 	btn_right.position = center + Vector2(60, 160)
 	
 	var lbl_title = Label.new()
@@ -110,20 +124,20 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	lbl_title.set("theme_override_constants/shadow_offset_y", 3)
 	lbl_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_title.size = Vector2(400, 120)
-	lbl_title.position = center + Vector2(-290, -180) # Lower
+	lbl_title.position = center + Vector2(-310, -220) # Lower
 	lbl_title.rotation_degrees = -27 # Better tilt
 	add_child(lbl_title)
 	
 	var lbl_lvl = Label.new()
 	lbl_lvl.text = str(_level_num)
-	lbl_lvl.set("theme_override_font_sizes/font_size", 108)
+	lbl_lvl.set("theme_override_font_sizes/font_size", 160)
 	lbl_lvl.set("theme_override_colors/font_color", Color.BLACK)
 	lbl_lvl.set("theme_override_colors/font_shadow_color", Color(0,0,0,0.4))
 	lbl_lvl.set("theme_override_constants/shadow_offset_x", 3)
 	lbl_lvl.set("theme_override_constants/shadow_offset_y", 3)
 	lbl_lvl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_lvl.size = Vector2(160, 160)
-	lbl_lvl.position = center + Vector2(290, -200)
+	lbl_lvl.position = center + Vector2(350, -260)
 	lbl_lvl.rotation_degrees = 15 # Angled to match the bubble
 	add_child(lbl_lvl)
 	
@@ -145,16 +159,16 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	
 	var lbl_name = Label.new()
 	lbl_name.text = p_name
-	lbl_name.set("theme_override_font_sizes/font_size", 28)
+	lbl_name.set("theme_override_font_sizes/font_size", 56)
 	lbl_name.set("theme_override_colors/font_color", Color.WHITE)
 	lbl_name.set("theme_override_colors/font_outline_color", Color.BLACK)
-	lbl_name.set("theme_override_constants/outline_size", 3)
+	lbl_name.set("theme_override_constants/outline_size", 5)
 	lbl_name.set("theme_override_colors/font_shadow_color", Color(0,0,0,0.6))
-	lbl_name.set("theme_override_constants/shadow_offset_x", 2)
-	lbl_name.set("theme_override_constants/shadow_offset_y", 2)
+	lbl_name.set("theme_override_constants/shadow_offset_x", 4)
+	lbl_name.set("theme_override_constants/shadow_offset_y", 4)
 	lbl_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl_name.size = Vector2(300, 40)
-	lbl_name.position = center + Vector2(-150, 130) # Moved lower
+	lbl_name.size = Vector2(600, 80)
+	lbl_name.position = center + Vector2(-300 + 40, 180) # Perfectly centered relative to figure (+40 offset)
 	add_child(lbl_name)
 	
 	figure_icon.mouse_filter = Control.MOUSE_FILTER_PASS

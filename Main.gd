@@ -893,7 +893,9 @@ func can_move_or_attack(pos, is_player):
 	if not board.has(pos): return true
 	var p = board[pos]
 	if p.piece_type == PieceType.CHECKER and p.is_player == is_player: return true
-	if p.has_meta("is_obstacle"): return p.piece_type == PieceType.POOP or p.piece_type == PieceType.BOMB_BARREL or p.piece_type == 21 or p.piece_type == 22
+	if p.has_meta("is_obstacle"):
+		if not is_player and (p.piece_type == 21 or p.piece_type == 22): return false
+		return p.piece_type == PieceType.POOP or p.piece_type == PieceType.BOMB_BARREL or p.piece_type == 21 or p.piece_type == 22
 	return p.is_player != is_player
 
 func get_valid_moves(pawn):
@@ -1345,7 +1347,8 @@ func take_damage(piece, amt, attacker = null):
 	var hp = piece.current_hp - amt
 	piece.current_hp = hp
 	
-	vfx_manager.show_floating_text(piece.grid_pos, "-%d" % amt, Color.RED, "left")
+	if amt < 9999 and piece.piece_type != 22 and amt > 0:
+		vfx_manager.show_floating_text(piece.grid_pos, "-%d" % amt, Color.RED, "left")
 	update_ui()
 	
 	if piece == selected_piece:
@@ -1500,9 +1503,11 @@ func take_damage(piece, amt, attacker = null):
 				for t in targets:
 					if is_instance_valid(t):
 						if t.has_meta("is_obstacle"):
-							take_damage(t, 999)
+							if t.piece_type != 22: # Don't chain react friendly spores infinitely right away? Actually chain reaction is fun, but let's just destroy it.
+								take_damage(t, 999)
 						else:
-							take_damage(t, 2)
+							t.poison_stacks += 1
+							vfx_manager.show_floating_text(t.grid_pos, "+1 POISON", Color.PURPLE)
 		if piece.is_player and piece.piece_type == PieceType.KING and not piece.has_meta("is_clone"):
 			trigger_game_over("Game Over! King Died!")
 			
@@ -1615,9 +1620,14 @@ func perform_action(piece, target_pos):
 			
 		take_damage(target_piece, atk, piece)
 		
-		if is_instance_valid(piece) and piece.artifacts.has("shark_tooth") and is_instance_valid(target_piece) and target_piece.current_hp > 0:
-			target_piece.bleed_stacks += 1
-			vfx_manager.show_floating_text(target_pos, TranslationManager.translate("bleed"), Color.RED)
+		if is_instance_valid(target_piece) and target_piece.current_hp > 0 and not target_piece.has_meta("is_obstacle"):
+			if is_instance_valid(piece) and piece.artifacts.has("shark_tooth"):
+				target_piece.bleed_stacks += 1
+				vfx_manager.show_floating_text(target_pos, TranslationManager.translate("bleed"), Color.RED)
+			if is_instance_valid(piece) and piece.piece_type == PieceType.TICK:
+				target_piece.poison_stacks += 1
+				target_piece.attack_damage = max(0, target_piece.attack_damage - 1)
+				vfx_manager.show_floating_text(target_pos, "POISON +1, ATK -1", Color.PURPLE)
 		
 		if is_instance_valid(target_piece) and target_piece.has_spikes:
 			take_damage(piece, 1)
