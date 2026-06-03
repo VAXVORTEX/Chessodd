@@ -31,9 +31,12 @@ var act2_color1 = Color("#4a2c3a")
 var act2_color2 = Color("#753c4d")
 var time_elapsed: float = 0.0
 var coins = 0
+var shop_rerolls_used = 0
+var is_levelup_active = false
 var game_over = false
 var normal_move_used = false
 
+var combat_manager = CombatManager.new(self)
 var map_manager = preload("res://scripts/MapManager.gd").new()
 var inventory_manager = preload("res://scripts/InventoryManager.gd").new(self)
 var vfx_manager = preload("res://scripts/VisualEffects.gd").new(self)
@@ -77,12 +80,12 @@ var tex_hoof: Texture2D
 var tex_brain_jar: Texture2D
 var tex_desk1: Texture2D
 var tex_desk2: Texture2D
+var tex_forest_bg: Texture2D
 var mirror_used_this_level = false
 var clone_active = false
 var active_clone_piece = null
 var force_clone_move = false
 
-var tex_evil_eye: Texture2D
 var tex_deadking: Texture2D
 var tex_deadking_head: Texture2D
 var tex_deadking_body: Texture2D
@@ -109,13 +112,14 @@ var info_stats: Label
 var info_desc: Label
 var info_tex: TextureRect
 var settings_panel: ColorRect
+var cancel_btn: Button
 var graveyard_panel: PanelContainer
-var graveyard_container: HBoxContainer
+var graveyard_container: Container
 var lbl_settings_title: Label
 var lbl_graveyard_title: Label
 var graveyard = []
 var enemy_graveyard = []
-var enemy_graveyard_container: HBoxContainer
+var enemy_graveyard_container: Container
 var main_menu_panel: ColorRect
 var save_slots_panel: ColorRect
 var save_slots_container: VBoxContainer
@@ -143,6 +147,7 @@ var item_tooltip_lbl: Label
 var world_env: WorldEnvironment
 var canvas_modulate: CanvasModulate
 var clouds_rect: TextureRect
+var bg_location: TextureRect
 var pause_panel: ColorRect
 
 var selected_item_data = null
@@ -157,6 +162,14 @@ func _notification(what):
 
 
 func _setup_visuals():
+	var game_bg = TextureRect.new()
+	game_bg.texture = load("res://images/forest_bg.png")
+	game_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	game_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	game_bg.z_index = -100
+	game_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(game_bg)
+	
 	world_env = WorldEnvironment.new()
 	var env = Environment.new()
 	env.background_mode = Environment.BG_CANVAS
@@ -264,11 +277,24 @@ func _ready():
 	tex_blood_hazards.append(load("res://images/blood2.png"))
 	tex_blood_hazards.append(load("res://images/blood3.png"))
 
-	tex_evil_eye = load("res://images/monster_eye.png")
 	tex_deadking = load("res://images/deadking.png")
 	tex_deadking_head = load("res://images/deadking_head.png")
 	tex_deadking_body = load("res://images/deadking_body.png")
 	tex_blood = null
+	tex_forest_bg = load("res://images/forest_bg.png")
+	if not tex_forest_bg:
+		var img = Image.load_from_file("res://images/forest_bg.png")
+		if img: tex_forest_bg = ImageTexture.create_from_image(img)
+	
+	bg_location = TextureRect.new()
+	bg_location.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bg_location.size = Vector2(1920, 1080)
+	bg_location.position = Vector2.ZERO
+	bg_location.z_index = -20
+	bg_location.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	if tex_forest_bg:
+		bg_location.texture = tex_forest_bg
+	add_child(bg_location)
 	
 	board_node = Node2D.new()
 	board_node.position = BOARD_OFFSET
@@ -354,21 +380,27 @@ func open_save_slots():
 func start_new_run(slot: int):
 	game_over = false
 	any_player_piece_died = false
-	if is_instance_valid(game_over_panel): game_over_panel.hide()
-	game_over = false
+	act = 1
+	level = 1
+	current_turn = 0
+	turn_count = 1
+	normal_move_used = false
+	mirror_used_this_level = false
+	clone_active = false
+	active_clone_piece = null
+	force_clone_move = false
+	coins = 5
+	time_elapsed = 0.0
 	if is_instance_valid(game_over_panel): game_over_panel.hide()
 	current_save_slot = slot
 	main_menu_panel.hide()
 	save_slots_panel.hide()
 	board_node.show()
 	graveyard_panel.show()
-	coins = 5
-	level = 1
-	time_elapsed = 0.0
-	turn_count = 1
 	
-	map_manager.generate_map()
-	update_ui()
+	blood_hazards.clear()
+	graveyard.clear()
+	enemy_graveyard.clear()
 	unassigned_items.clear()
 	player_pawns.clear()
 	bot_pawns.clear()
@@ -376,21 +408,18 @@ func start_new_run(slot: int):
 	for child in board_node.get_children():
 		if child != overlay and child != map_king and child is Sprite2D:
 			child.queue_free()
-	#EnemySpawner.spawn_piece(self, 0, ROWS - 1, true, PieceType.KNIGHT)
-	#EnemySpawner.spawn_piece(self, 1, ROWS - 1, true, PieceType.BISHOP)
-	EnemySpawner.spawn_piece(self, 2, ROWS - 1, true, PieceType.KING)
-	#EnemySpawner.spawn_piece(self, 3, ROWS - 1, true, PieceType.QUEEN)
-	#EnemySpawner.spawn_piece(self, 4, ROWS - 1, true, PieceType.ROOK)
+	for bp in blood_puddles:
+		if is_instance_valid(bp["node"]): bp["node"].queue_free()
+	blood_puddles.clear()
 	
-	#for i in range(COLS):
-	#	EnemySpawner.spawn_piece(self, i, ROWS - 2, true, PieceType.PAWN)
 	map_manager.generate_map()
+	update_ui()
+	EnemySpawner.spawn_piece(self, 2, ROWS - 1, true, PieceType.KING)
+	
 	start_map_mode()
 	save_game_state()
 
 func load_run(slot: int, data: Dictionary):
-	game_over = false
-	if is_instance_valid(game_over_panel): game_over_panel.hide()
 	game_over = false
 	if is_instance_valid(game_over_panel): game_over_panel.hide()
 	current_save_slot = slot
@@ -440,6 +469,7 @@ func load_run(slot: int, data: Dictionary):
 		piece.max_hp = p.max_hp
 		piece.attack_damage = p.atk
 		piece.artifacts = p.artifacts
+		if p.has("lvl"): piece.level = p.lvl
 		if p.has("meta"):
 			for k in p.meta.keys():
 				var val = p.meta[k]
@@ -457,6 +487,7 @@ func load_run(slot: int, data: Dictionary):
 		piece.max_hp = b.max_hp
 		piece.attack_damage = b.atk
 		piece.artifacts = b.artifacts
+		if b.has("lvl"): piece.level = b.lvl
 		if b.has("meta"):
 			for k in b.meta.keys():
 				var val = b.meta[k]
@@ -476,6 +507,7 @@ func load_run(slot: int, data: Dictionary):
 	if saved_state == GameState.MAP:
 		start_map_mode()
 	elif saved_state == GameState.SHOP:
+		shop_rerolls_used = 0
 		generate_shop()
 		shop_panel.show()
 		info_panel.hide()
@@ -499,12 +531,12 @@ func save_game_state():
 	for p in player_pawns:
 		if is_instance_valid(p):
 			var m = {}; for k in p.get_meta_list(): m[k] = p.get_meta(k)
-			p_data.append({"x": p.grid_pos.x, "y": p.grid_pos.y, "type": p.piece_type, "hp": p.current_hp, "max_hp": p.max_hp, "atk": p.attack_damage, "artifacts": p.artifacts, "meta": m})
+			p_data.append({"x": p.grid_pos.x, "y": p.grid_pos.y, "type": p.piece_type, "hp": p.current_hp, "max_hp": p.max_hp, "atk": p.attack_damage, "artifacts": p.artifacts, "lvl": p.level, "meta": m})
 	var b_data = []
 	for b in bot_pawns:
 		if is_instance_valid(b):
 			var m = {}; for k in b.get_meta_list(): m[k] = b.get_meta(k)
-			b_data.append({"x": b.grid_pos.x, "y": b.grid_pos.y, "type": b.piece_type, "hp": b.current_hp, "max_hp": b.max_hp, "atk": b.attack_damage, "artifacts": b.artifacts, "meta": m})
+			b_data.append({"x": b.grid_pos.x, "y": b.grid_pos.y, "type": b.piece_type, "hp": b.current_hp, "max_hp": b.max_hp, "atk": b.attack_damage, "artifacts": b.artifacts, "lvl": b.level, "meta": m})
 	
 	var data = {
 		"state": state,
@@ -531,10 +563,9 @@ func _process(delta):
 		var mp = get_viewport().get_mouse_position()
 		item_tooltip.position = mp + Vector2(20, 20)
 		
-	if state == GameState.SHOP or game_over: return
-	if inv_panel.visible: return
+	if state == GameState.SHOP or game_over or inv_panel.visible: return
 	
-	if state == GameState.PLAYING and not game_over and not pause_panel.visible:
+	if state == GameState.PLAYING and not pause_panel.visible:
 		time_elapsed += delta
 		var m = int(floor(time_elapsed / 60.0))
 		var s = int(fmod(time_elapsed, 60.0))
@@ -579,7 +610,6 @@ func update_ui_translation():
 
 	if is_instance_valid(lbl_settings_title):
 		lbl_settings_title.text = TranslationManager.translate("settings")
-	pass
 		
 	if is_instance_valid(settings_panel) and settings_panel is SettingsMenu:
 		settings_panel.tabs.set_tab_title(0, TranslationManager.translate("audio"))
@@ -605,25 +635,7 @@ func update_ui_translation():
 	update_graveyard_ui()
 
 
-func add_board_coordinates():
-	if state == GameState.MAP: return
-	var letters = ["A", "B", "C", "D", "E", "F", "G", "H"]
-	for x in range(COLS):
-		var lbl = Label.new()
-		lbl.text = letters[x] if x < letters.size() else str(x)
-		lbl.set("theme_override_font_sizes/font_size", 16)
-		lbl.set("theme_override_colors/font_color", Color(1, 1, 1, 0.5))
-		lbl.position = Vector2(x * CELL_SIZE_V.x + CELL_SIZE_V.x * 0.4, ROWS * CELL_SIZE_V.y + 2)
-		lbl.z_index = -3
-		board_node.add_child(lbl)
-	for y in range(ROWS):
-		var lbl = Label.new()
-		lbl.text = str(ROWS - y)
-		lbl.set("theme_override_font_sizes/font_size", 16)
-		lbl.set("theme_override_colors/font_color", Color(1, 1, 1, 0.5))
-		lbl.position = Vector2(-20, y * CELL_SIZE_V.y + CELL_SIZE_V.y * 0.3)
-		lbl.z_index = -3
-		board_node.add_child(lbl)
+
 func get_dead_piece_tooltip(dead: Dictionary) -> String:
 	var s = "[color=yellow]" + str(dead.name) + "[/color]\n"
 	s += "[color=red]0 HP (Dead)[/color]\n"
@@ -647,12 +659,12 @@ func populate_gy_container(container: Control, list: Array):
 			tex_rect.texture = dead.tex
 		if tex_rect.texture == null:
 			tex_rect.texture = preload("res://images/pawn.png")
-		tex_rect.custom_minimum_size = Vector2(128, 128)
+		tex_rect.custom_minimum_size = Vector2(110, 110)
 		tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		tex_rect.mouse_filter = Control.MOUSE_FILTER_STOP
 		
-		tex_rect.pivot_offset = Vector2(64, 64)
+		tex_rect.pivot_offset = Vector2(55, 55)
 		var base_color = Color.WHITE
 		if dead.has("is_player") and not dead.is_player and dead.has("type") and dead.type != PieceType.POOP and dead.type != PieceType.ROCK and dead.type != PieceType.BOMB_BARREL:
 			base_color = Color(1.0, 0.4, 0.4)
@@ -695,8 +707,19 @@ func start_bottle_targeting(p, slot_ui = null):
 	active_item_slot_ui = slot_ui
 	if active_item_slot_ui:
 		active_item_slot_ui.modulate = Color(0.2, 1.0, 0.2)
+	if cancel_btn: cancel_btn.show()
 	status_label.text = "Select allied piece to sacrifice..."
 	status_label.set("theme_override_colors/font_color", Color.RED)
+
+func cancel_active_item():
+	if active_item_slot_ui:
+		active_item_slot_ui.modulate = Color.WHITE
+		active_item_slot_ui = null
+	if cancel_btn: cancel_btn.hide()
+	state = GameState.PLAYING
+	status_label.text = TranslationManager.translate("player_turn", [turn_count])
+	status_label.set("theme_override_colors/font_color", Color.WHITE)
+	overlay.queue_redraw()
 
 func update_piece_slots(piece):
 	var box = piece.get_node_or_null("SlotsBox")
@@ -847,6 +870,10 @@ func spawn_random_piece(is_player, type):
 
 func _input(event):
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		if state in [GameState.TARGETING_SACRIFICE, GameState.TARGETING_DARK_MIRROR, GameState.TARGETING_HAND, GameState.TARGETING_BLOOD_KNIFE, GameState.TARGETING_TORCH, GameState.TARGETING_FINGER]:
+			cancel_active_item()
+			get_viewport().set_input_as_handled()
+			return
 		toggle_pause_menu()
 		get_viewport().set_input_as_handled()
 		return
@@ -869,59 +896,51 @@ func _input(event):
 		return
 	
 	if state == GameState.TARGETING_SACRIFICE:
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			var mpos = board_node.get_local_mouse_position()
-			var g_pos = Vector2(floor(mpos.x / CELL_SIZE_V.x), floor(mpos.y / CELL_SIZE_V.y))
-			if is_inside(g_pos) and board.has(g_pos) and board[g_pos].is_player and bottle_user_piece:
-				var t = board[g_pos]
-				if t == bottle_user_piece:
-					state = GameState.PLAYING
-					status_label.text = TranslationManager.translate("player_turn", [turn_count])
-					status_label.set("theme_override_colors/font_color", Color.WHITE)
-					if active_item_slot_ui:
-						active_item_slot_ui.modulate = Color.WHITE
-						active_item_slot_ui = null
-					return
-					
-				bottle_user_piece.current_hp += 2
-				bottle_user_piece.attack_damage += 1
-				vfx_manager.show_floating_text(bottle_user_piece.grid_pos, "DRANK ALLY!", Color.GREEN)
-				take_damage(t, 9999)
-				bottle_user_piece.bottle_used_this_level = true
-				var idx = bottle_user_piece.artifacts.find("bottle")
-				if idx != -1:
-					bottle_user_piece.artifacts[idx] = ""
-				update_info_panel(bottle_user_piece.grid_pos)
-				state = GameState.PLAYING
-				status_label.text = TranslationManager.translate("player_turn", [turn_count])
-				status_label.set("theme_override_colors/font_color", Color.WHITE)
-				inventory_manager.update_inventory_screen()
-				if active_item_slot_ui:
-					active_item_slot_ui.modulate = Color.WHITE
-					active_item_slot_ui = null
-			else:
-				state = GameState.PLAYING
-				status_label.text = TranslationManager.translate("player_turn", [turn_count])
-				status_label.set("theme_override_colors/font_color", Color.WHITE)
-				if active_item_slot_ui:
-					active_item_slot_ui.modulate = Color.WHITE
-					active_item_slot_ui = null
-			overlay.queue_redraw()
+		if event is InputEventMouseButton and event.pressed:
+			if event.button_index == MOUSE_BUTTON_RIGHT:
+				cancel_active_item()
+				return
+			if event.button_index == MOUSE_BUTTON_LEFT:
+				var mpos = board_node.get_local_mouse_position()
+				var g_pos = Vector2(floor(mpos.x / CELL_SIZE_V.x), floor(mpos.y / CELL_SIZE_V.y))
+				if is_inside(g_pos) and board.has(g_pos) and board[g_pos].is_player and bottle_user_piece:
+					var t = board[g_pos]
+					if t == bottle_user_piece:
+						cancel_active_item()
+						return
+					bottle_user_piece.current_hp += 2
+					bottle_user_piece.attack_damage += 1
+					vfx_manager.show_floating_text(bottle_user_piece.grid_pos, "DRANK ALLY!", Color.GREEN)
+					take_damage(t, 9999)
+					bottle_user_piece.bottle_used_this_level = true
+					var idx = bottle_user_piece.artifacts.find("bottle")
+					if idx != -1:
+						bottle_user_piece.artifacts[idx] = ""
+					update_info_panel(bottle_user_piece.grid_pos)
+					cancel_active_item()
+					inventory_manager.update_inventory_screen()
+				else:
+					cancel_active_item()
 			return
 			
 	elif state == GameState.TARGETING_DARK_MIRROR:
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			var mpos = board_node.get_local_mouse_position()
-			var g_pos = Vector2(floor(mpos.x / CELL_SIZE_V.x), floor(mpos.y / CELL_SIZE_V.y))
-			if selected_piece and is_inside(g_pos) and not board.has(g_pos) and (g_pos - selected_piece.grid_pos).length() < 2:
-				spawn_clone_piece(selected_piece, g_pos)
-				
-				mirror_used_this_level = true
-				inventory_manager.recalc_pawn_stats(selected_piece)
-				update_piece_slots(selected_piece)
-				update_info_panel(selected_piece.grid_pos)
-				
-				state = GameState.PLAYING
+		if event is InputEventMouseButton and event.pressed:
+			if event.button_index == MOUSE_BUTTON_RIGHT:
+				cancel_active_item()
+				return
+			if event.button_index == MOUSE_BUTTON_LEFT:
+				var mpos = board_node.get_local_mouse_position()
+				var g_pos = Vector2(floor(mpos.x / CELL_SIZE_V.x), floor(mpos.y / CELL_SIZE_V.y))
+				if selected_piece and is_inside(g_pos) and not board.has(g_pos) and (g_pos - selected_piece.grid_pos).length() < 2:
+					spawn_clone_piece(selected_piece, g_pos)
+					
+					mirror_used_this_level = true
+					inventory_manager.recalc_pawn_stats(selected_piece)
+					update_piece_slots(selected_piece)
+					update_info_panel(selected_piece.grid_pos)
+					
+					if cancel_btn: cancel_btn.hide()
+					state = GameState.PLAYING
 				if not normal_move_used:
 					status_label.text = TranslationManager.translate("player_turn", [turn_count])
 					status_label.set("theme_override_colors/font_color", Color.WHITE)
@@ -934,48 +953,20 @@ func _input(event):
 					active_item_slot_ui = null
 				overlay.queue_redraw()
 			else:
-				state = GameState.PLAYING
-				status_label.text = TranslationManager.translate("player_turn", [turn_count])
-				status_label.set("theme_override_colors/font_color", Color.WHITE)
-				if active_item_slot_ui:
-					active_item_slot_ui.modulate = Color.WHITE
-					active_item_slot_ui = null
-				overlay.queue_redraw()
+				cancel_active_item()
 			return
 			
 	elif state == GameState.TARGETING_FINGER:
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			var mpos = board_node.get_local_mouse_position()
-			var g_pos = Vector2(floor(mpos.x / CELL_SIZE_V.x), floor(mpos.y / CELL_SIZE_V.y))
-			if is_inside(g_pos) and board.has(g_pos):
-				var target = board[g_pos]
-				if not target.is_player and not target.has_meta("is_obstacle"):
-					if target.piece_type == PieceType.EVIL_EYE:
-						var enemies = []
-						for b in bot_pawns:
-							if is_instance_valid(b) and not b.has_meta("is_obstacle") and b != target:
-								enemies.append(b.grid_pos)
-						if enemies.size() > 0:
-							var t = enemies[randi() % enemies.size()]
-							vfx_manager.show_floating_text(g_pos, TranslationManager.translate("lazer"), Color.RED)
-							var from_px = g_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
-							var to_px = t * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
-							var line = Line2D.new()
-							line.add_point(from_px)
-							line.add_point(to_px)
-							line.width = 10.0
-							line.default_color = Color.RED
-							line.z_index = 5
-							board_node.add_child(line)
-							var tween = create_tween()
-							tween.tween_property(line, "modulate:a", 0.0, 0.5)
-							tween.tween_callback(line.queue_free)
-							take_damage(board[t], target.attack_damage, target)
-							selected_piece.set_meta("finger_used_this_turn", true)
-							update_piece_slots(selected_piece)
-						else:
-							vfx_manager.show_floating_text(g_pos, TranslationManager.translate("no_targets"), Color.GRAY)
-					else:
+		if event is InputEventMouseButton and event.pressed:
+			if event.button_index == MOUSE_BUTTON_RIGHT:
+				cancel_active_item()
+				return
+			if event.button_index == MOUSE_BUTTON_LEFT:
+				var mpos = board_node.get_local_mouse_position()
+				var g_pos = Vector2(floor(mpos.x / CELL_SIZE_V.x), floor(mpos.y / CELL_SIZE_V.y))
+				if is_inside(g_pos) and board.has(g_pos) and is_instance_valid(board[g_pos]) and board[g_pos].current_hp > 0:
+					var target = board[g_pos]
+					if not target.is_player and not target.has_meta("is_obstacle"):
 						target.is_player = true
 						var moves = get_valid_moves(target)
 						target.is_player = false
@@ -990,106 +981,95 @@ func _input(event):
 							perform_action(target, t)
 						else:
 							vfx_manager.show_floating_text(g_pos, TranslationManager.translate("no_targets"), Color.GRAY)
-					state = GameState.PLAYING
-					status_label.text = TranslationManager.translate("player_turn", [turn_count])
-					status_label.set("theme_override_colors/font_color", Color.WHITE)
-					if active_item_slot_ui:
-						active_item_slot_ui.modulate = Color.WHITE
-						active_item_slot_ui = null
-					overlay.queue_redraw()
+					cancel_active_item()
 			return
 	elif state == GameState.TARGETING_HAND:
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			var mpos = board_node.get_local_mouse_position()
-			var g_pos = Vector2(floor(mpos.x / CELL_SIZE_V.x), floor(mpos.y / CELL_SIZE_V.y))
-			if selected_piece and is_inside(g_pos) and board.has(g_pos):
-				var target = board[g_pos]
-				var diff = g_pos - selected_piece.grid_pos
-				var dist = abs(diff.x) + abs(diff.y)
-				var is_orthogonal = diff.x == 0 or diff.y == 0
-				if not target.is_player and target.piece_type != PieceType.ROCK and is_orthogonal and dist <= 2:
-					var push_dir = diff.normalized()
-					var push_pos = g_pos + push_dir
-					
-					selected_piece.set_meta("hand_used_this_turn", true)
-					inventory_manager.recalc_pawn_stats(selected_piece)
-					update_piece_slots(selected_piece)
-					
-					var blocked = not is_inside(push_pos) or board.has(push_pos)
-					
-					if blocked:
-						vfx_manager.show_floating_text(g_pos, "COLLISION!", Color.RED)
-						take_damage(target, 2, selected_piece)
-						if is_inside(push_pos) and board.has(push_pos):
-							var standing = board[push_pos]
-							take_damage(standing, 1, selected_piece)
-						if selected_piece: update_info_panel(selected_piece.grid_pos)
+		if event is InputEventMouseButton and event.pressed:
+			if event.button_index == MOUSE_BUTTON_RIGHT:
+				cancel_active_item()
+				return
+			if event.button_index == MOUSE_BUTTON_LEFT:
+				var mpos = board_node.get_local_mouse_position()
+				var g_pos = Vector2(floor(mpos.x / CELL_SIZE_V.x), floor(mpos.y / CELL_SIZE_V.y))
+				if selected_piece and is_inside(g_pos) and board.has(g_pos) and is_instance_valid(board[g_pos]) and board[g_pos].current_hp > 0:
+					var target = board[g_pos]
+					var diff = g_pos - selected_piece.grid_pos
+					var dist = abs(diff.x) + abs(diff.y)
+					var is_orthogonal = diff.x == 0 or diff.y == 0
+					if not target.is_player and target.piece_type != PieceType.ROCK and is_orthogonal and dist <= 2:
+						var push_dir = diff.normalized()
+						var push_pos = g_pos + push_dir
 						
-						var bump_px = (g_pos * CELL_SIZE_V + push_pos * CELL_SIZE_V) / 2.0 + (CELL_SIZE_V / 2.0)
-						var orig_px = g_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
-						var tween = create_tween()
-						tween.tween_property(target, "position", bump_px, 0.1)
-						tween.tween_property(target, "position", orig_px, 0.1)
-					else:
-						vfx_manager.show_floating_text(g_pos, "PUSH!", Color.ORANGE)
-						take_damage(target, 1, selected_piece)
-						if is_instance_valid(target) and target.current_hp > 0:
-							board.erase(g_pos)
-							target.grid_pos = push_pos
-							board[push_pos] = target
+						selected_piece.set_meta("hand_used_this_turn", true)
+						inventory_manager.recalc_pawn_stats(selected_piece)
+						update_piece_slots(selected_piece)
+						
+						var blocked = not is_inside(push_pos) or board.has(push_pos)
+						
+						if blocked:
+							vfx_manager.show_floating_text(g_pos, "COLLISION!", Color.RED)
+							take_damage(target, 2, selected_piece)
+							if is_inside(push_pos) and board.has(push_pos):
+								var standing = board[push_pos]
+								take_damage(standing, 1, selected_piece)
+							if selected_piece: update_info_panel(selected_piece.grid_pos)
 							
+							var bump_px = (g_pos * CELL_SIZE_V + push_pos * CELL_SIZE_V) / 2.0 + (CELL_SIZE_V / 2.0)
+							var orig_px = g_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
 							var tween = create_tween()
-							tween.tween_property(target, "position", push_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.2)
-							tween.tween_callback(func(): check_nightmare_pawns_interaction(target))
-						if selected_piece: update_info_panel(selected_piece.grid_pos)
-						
-			state = GameState.PLAYING
-			status_label.text = TranslationManager.translate("player_turn", [turn_count])
-			status_label.set("theme_override_colors/font_color", Color.WHITE)
-			if active_item_slot_ui:
-				active_item_slot_ui.modulate = Color.WHITE
-				active_item_slot_ui = null
-			overlay.queue_redraw()
-			check_win_condition()
+							tween.tween_property(target, "position", bump_px, 0.1)
+							tween.tween_property(target, "position", orig_px, 0.1)
+						else:
+							vfx_manager.show_floating_text(g_pos, "PUSH!", Color.ORANGE)
+							take_damage(target, 1, selected_piece)
+							if is_instance_valid(target) and target.current_hp > 0:
+								board.erase(g_pos)
+								target.grid_pos = push_pos
+								board[push_pos] = target
+								
+								var tween = create_tween()
+								tween.tween_property(target, "position", push_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.2)
+								tween.tween_callback(func(): check_nightmare_pawns_interaction(target))
+							if selected_piece: update_info_panel(selected_piece.grid_pos)
+							
+				cancel_active_item()
+				check_win_condition()
 			return
 	elif state == GameState.TARGETING_BLOOD_KNIFE or state == GameState.TARGETING_TORCH:
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			var mpos = board_node.get_local_mouse_position()
-			var g_pos = Vector2(floor(mpos.x / CELL_SIZE_V.x), floor(mpos.y / CELL_SIZE_V.y))
-			if selected_piece and is_inside(g_pos) and board.has(g_pos):
-				var target = board[g_pos]
-				var diff = g_pos - selected_piece.grid_pos
-				var is_orthogonal = diff.x == 0 or diff.y == 0
-				var dist = abs(diff.x) + abs(diff.y)
-				if is_orthogonal and dist > 0 and dist <= 3 and not target.has_meta("is_obstacle"):
-					if state == GameState.TARGETING_BLOOD_KNIFE:
-						target.bleed_stacks += 3
-						vfx_manager.show_floating_text(g_pos, "BLEED +3!", Color.RED)
-						selected_piece.set_meta("blood_knife_used_this_turn", true)
-					else:
-						if target.piece_type == PieceType.BOMB_BARREL:
-							take_damage(target, 9999)
-						elif target.bleed_stacks > 0:
-							var dmg = target.bleed_stacks * 2
-							take_damage(target, dmg)
-							target.bleed_stacks = 0
-							vfx_manager.show_floating_text(g_pos, "CAUTERIZED!", Color.MAGENTA)
+		if event is InputEventMouseButton and event.pressed:
+			if event.button_index == MOUSE_BUTTON_RIGHT:
+				cancel_active_item()
+				return
+			if event.button_index == MOUSE_BUTTON_LEFT:
+				var mpos = board_node.get_local_mouse_position()
+				var g_pos = Vector2(floor(mpos.x / CELL_SIZE_V.x), floor(mpos.y / CELL_SIZE_V.y))
+				if selected_piece and is_inside(g_pos) and board.has(g_pos) and is_instance_valid(board[g_pos]) and board[g_pos].current_hp > 0:
+					var target = board[g_pos]
+					var diff = g_pos - selected_piece.grid_pos
+					var is_orthogonal = diff.x == 0 or diff.y == 0
+					var dist = abs(diff.x) + abs(diff.y)
+					if is_orthogonal and dist > 0 and dist <= 3 and not target.has_meta("is_obstacle"):
+						if state == GameState.TARGETING_BLOOD_KNIFE:
+							target.bleed_stacks += 3
+							vfx_manager.show_floating_text(g_pos, "BLEED +3!", Color.RED)
+							selected_piece.set_meta("blood_knife_used_this_turn", true)
 						else:
-							target.burn_stacks += 2
-							vfx_manager.show_floating_text(g_pos, "BURN +2!", Color.ORANGE)
-						selected_piece.set_meta("torch_used_this_turn", true)
-					
-					inventory_manager.recalc_pawn_stats(selected_piece)
-					update_piece_slots(selected_piece)
-					if selected_piece: update_info_panel(selected_piece.grid_pos)
-					
-			state = GameState.PLAYING
-			status_label.text = TranslationManager.translate("player_turn", [turn_count])
-			status_label.set("theme_override_colors/font_color", Color.WHITE)
-			if active_item_slot_ui:
-				active_item_slot_ui.modulate = Color.WHITE
-				active_item_slot_ui = null
-			overlay.queue_redraw()
+							if target.piece_type == PieceType.BOMB_BARREL:
+								take_damage(target, 9999)
+							elif target.bleed_stacks > 0:
+								var dmg = target.bleed_stacks * 2
+								take_damage(target, dmg)
+								target.bleed_stacks = 0
+								vfx_manager.show_floating_text(g_pos, "CAUTERIZED!", Color.MAGENTA)
+							else:
+								target.burn_stacks += 2
+								vfx_manager.show_floating_text(g_pos, "BURN +2!", Color.ORANGE)
+							selected_piece.set_meta("torch_used_this_turn", true)
+						
+						inventory_manager.recalc_pawn_stats(selected_piece)
+						update_piece_slots(selected_piece)
+						if selected_piece: update_info_panel(selected_piece.grid_pos)
+				cancel_active_item()
 			return
 
 			
@@ -1156,17 +1136,6 @@ func _on_overlay_draw():
 			var sz = s * sf
 			var offset = (CELL_SIZE_V - sz) / 2.0
 			overlay.draw_texture_rect(tex, Rect2(pos * CELL_SIZE_V + offset, sz), false)
-	for b in bot_pawns:
-		if is_instance_valid(b) and b.piece_type == PieceType.EVIL_EYE and b.has_meta("eye_aiming") and b.get_meta("eye_aiming"):
-			var eg = b.grid_pos
-			var tp = b.get_meta("eye_target")
-			
-			var from_px = eg * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
-			var to_px = tp * CELL_SIZE_V + (CELL_SIZE_V / 2.0)
-			
-			overlay.draw_line(from_px, to_px, Color(1, 0, 0, 0.7), 3.0)
-			overlay.draw_circle(to_px, 20.0, Color(1, 0, 0, 0.4))
-
 	if state == GameState.MAP:
 		var node_pos_map = _get_node_pos_map()
 		
@@ -1214,7 +1183,7 @@ func _on_overlay_draw():
 						overlay.draw_rect(Rect2(t * CELL_SIZE_V, CELL_SIZE_V), Color(0.6, 0.2, 0.8, 0.4))
 	elif state == GameState.TARGETING_FINGER:
 		for b in bot_pawns:
-			if is_instance_valid(b) and not b.has_meta("is_obstacle"):
+			if is_instance_valid(b) and b.current_hp > 0 and not b.has_meta("is_obstacle"):
 				overlay.draw_rect(Rect2(b.grid_pos * CELL_SIZE_V, CELL_SIZE_V), Color(1.0, 0.2, 0.8, 0.4))
 	elif state == GameState.TARGETING_HAND:
 		if selected_piece:
@@ -1223,7 +1192,7 @@ func _on_overlay_draw():
 				for i in range(1, 3):
 					var t = g + d * i
 					if is_inside(t):
-						if board.has(t) and not board[t].is_player and not board[t].has_meta("is_obstacle"):
+						if board.has(t) and not board[t].is_player and not board[t].has_meta("is_obstacle") and board[t].current_hp > 0:
 							overlay.draw_rect(Rect2(t * CELL_SIZE_V, CELL_SIZE_V), Color(1.0, 0.6, 0.0, 0.5))
 						else:
 							overlay.draw_rect(Rect2(t * CELL_SIZE_V, CELL_SIZE_V), Color(1.0, 0.8, 0.4, 0.2))
@@ -1274,6 +1243,8 @@ func take_damage(piece, amt, attacker = null):
 		update_info_panel(piece.grid_pos)
 		
 	if hp <= 0:
+		if not is_instance_valid(piece):
+			return
 		if piece.is_player:
 			any_player_piece_died = true
 		if is_instance_valid(attacker) and attacker.piece_type == PieceType.BLOOD_QUEEN:
@@ -1596,6 +1567,13 @@ func perform_action(piece, target_pos):
 				selected_piece = null
 				overlay.queue_redraw()
 				update_ui()
+				check_nightmare_pawns_interaction(piece)
+			elif piece.is_player and piece.has_meta("swift") and piece.piece_type == PieceType.QUEEN:
+				vfx_manager.show_floating_text(target_pos, "SWIFT STRIKE!", Color.CYAN)
+				normal_move_used = false
+				selected_piece = null
+				overlay.queue_redraw()
+				check_nightmare_pawns_interaction(piece)
 			else:
 				end_turn_with_tween(piece, target_pos, tween)
 		else:
@@ -1616,56 +1594,21 @@ func perform_action(piece, target_pos):
 			selected_piece = null
 			overlay.queue_redraw()
 			update_ui()
+			check_nightmare_pawns_interaction(piece)
 		else:
 			end_turn_with_tween(piece, target_pos, tween)
 
 
 
 
+func show_floating_text(grid_pos, text, color, align = "center"):
+	vfx_manager.show_floating_text(grid_pos, text, color, align)
+
 func handle_movement_bleed(piece, start_pos, target_pos):
-	if not is_instance_valid(piece): return
-	var dist = int(max(abs(target_pos.x - start_pos.x), abs(target_pos.y - start_pos.y)))
-	if dist == 0: return
-	
-	var bleed_dmg = min(dist, piece.bleed_stacks)
-	if bleed_dmg > 0:
-		take_damage(piece, bleed_dmg, null)
-		piece.bleed_stacks -= bleed_dmg
-		vfx_manager.show_floating_text(target_pos, "BLEED -%d" % bleed_dmg, Color.RED)
-		
-	if piece.bleed_stacks > 0 or bleed_dmg > 0:
-		var last_idx = randi() % 3
-		for i in range(dist):
-			var t = float(i) / float(dist) if dist > 0 else 0.0
-			var cell = Vector2(round(lerp(start_pos.x, target_pos.x, t)), round(lerp(start_pos.y, target_pos.y, t)))
-			last_idx = (last_idx + randi_range(1, 2)) % 3
-			if not blood_hazards.has(cell):
-				blood_hazards[cell] = {"turns": 3, "tex_idx": last_idx}
-			else:
-				blood_hazards[cell].turns = 3
+	combat_manager.handle_movement_bleed(piece, start_pos, target_pos)
 
 func tick_statuses(is_player_turn):
-	for p in player_pawns + bot_pawns:
-		if not is_instance_valid(p) or p.current_hp <= 0 or p.has_meta("is_obstacle"): continue
-		
-		if p.burn_stacks > 0:
-			take_damage(p, p.burn_stacks, null)
-			vfx_manager.show_floating_text(p.grid_pos, "BURN -%d" % p.burn_stacks, Color.ORANGE)
-			p.burn_stacks -= 1
-			if p.burn_stacks < 0: p.burn_stacks = 0
-			
-		if p.is_poisoned and p.is_player == is_player_turn:
-			take_damage(p, 1, null)
-			vfx_manager.show_floating_text(p.grid_pos, "POISON -1", Color.GREEN)
-			
-	var to_remove = []
-	for pos in blood_hazards.keys():
-		blood_hazards[pos].turns -= 1
-		if blood_hazards[pos].turns <= 0:
-			to_remove.append(pos)
-	for pos in to_remove:
-		blood_hazards.erase(pos)
-	overlay.queue_redraw()
+	combat_manager.tick_statuses(is_player_turn)
 
 func check_floor_hazards(_piece):
 	pass
@@ -1730,15 +1673,7 @@ func end_turn_with_tween(piece, _target_pos, tween, was_player = null, skip_turn
 			tween.tween_callback(start_player_turn)
 
 func get_cell_before_target(g_pos: Vector2, target_pos: Vector2) -> Vector2:
-	var diff = target_pos - g_pos
-	var step = Vector2.ZERO
-	if abs(diff.x) > abs(diff.y):
-		step = Vector2(sign(diff.x), 0)
-	elif abs(diff.y) > abs(diff.x):
-		step = Vector2(0, sign(diff.y))
-	else:
-		step = Vector2(sign(diff.x), sign(diff.y))
-	return target_pos - step
+	return combat_manager.get_cell_before_target(g_pos, target_pos)
 
 func start_player_turn():
 	current_turn = 0
@@ -1747,7 +1682,6 @@ func start_player_turn():
 	status_label.text = TranslationManager.translate("player_turn", [turn_count])
 	status_label.set("theme_override_colors/font_color", Color.WHITE)
 	tick_statuses(true)
-	pass
 	check_win_condition()
 
 func bot_turn():
@@ -2025,60 +1959,111 @@ func end_level():
 	blood_puddles.clear()
 	
 	update_ui_translation()
-	start_map_mode()
+	
+	if not player_pawns.is_empty():
+		show_level_up_screen()
+	else:
+		start_map_mode()
 
 func generate_shop():
 	for child in shop_items_container.get_children():
 		shop_items_container.remove_child(child)
 		child.queue_free()
-		
-	for i in range(3):
-		var pool = [PieceType.PAWN, PieceType.KNIGHT, PieceType.BISHOP, PieceType.ROOK, PieceType.QUEEN, PieceType.TELEPAWN, PieceType.CHECKER, PieceType.NIGHTMARE_PAWN, PieceType.BLOOD_QUEEN]
-		var type = pool[randi() % pool.size()]
-		
-		if randf() < 0.5:
-			type = PieceType.SPIKED_PAWN
-			
-		var data = PieceData.registry.get(type, PieceData.registry[PieceType.PAWN])
-		var cost = data.get("cost", 2)
-		var type_name = data.get("title", "Unknown")
-		var tex = PieceData.get_piece_texture(type, true)
-			
-		var btn = Button.new()
-		btn.text = "%s\n$%d" % [type_name, cost]
-		btn.custom_minimum_size = Vector2(160, 200)
-		btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		btn.icon = tex
-		btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		btn.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
-		btn.expand_icon = true
-		btn.pressed.connect(buy_item.bind(type, cost, btn, false))
-		btn.gui_input.connect(func(event):
-			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
-				inventory_manager.show_item_info(PieceType.keys()[type], btn.global_position + Vector2(20,20))
-		)
-		shop_items_container.add_child(btn)
-		
+	
+	var figure_pool = [PieceType.PAWN, PieceType.KNIGHT, PieceType.BISHOP, PieceType.ROOK, PieceType.QUEEN, PieceType.TELEPAWN, PieceType.CHECKER, PieceType.NIGHTMARE_PAWN, PieceType.BLOOD_QUEEN, PieceType.SPIKED_PAWN]
 	var item_pool = ["knife", "bottle", "boots", "dark_mirror", "hand", "blood_knife", "torch", "finger", "shark_tooth", "hoof", "brain_jar"]
-	for i in range(2):
-		var item_type = item_pool[randi() % item_pool.size()]
-		var btn = Button.new()
-		var cost = 5
-		if item_type == "dark_mirror": cost = 8
-		btn.text = "%s\n$%d" % [item_type.replace("_", " ").capitalize(), cost]
-		btn.custom_minimum_size = Vector2(160, 200)
-		btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	
+	var shelves = [
+		{"type": "figure", "icon": "shelf1_shop.png", "cost": 8},
+		{"type": "item", "icon": "shelf2_shop.png", "cost": 10},
+		{"type": "random", "icon": "shelf1_shop.png", "cost_figure": 8, "cost_item": 10},
+	]
+	
+	for s in shelves:
+		var vbox = VBoxContainer.new()
+		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+		vbox.add_theme_constant_override("separation", 4)
+		vbox.custom_minimum_size = Vector2(200, 300)
+		shop_items_container.add_child(vbox)
 		
-		btn.icon = inventory_manager.get_item_texture(item_type)
-		btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		btn.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
-		btn.expand_icon = true
-		btn.pressed.connect(buy_item.bind(item_type, cost, btn, true))
-		btn.gui_input.connect(func(event):
-			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
-				inventory_manager.show_item_info(item_type, btn.global_position + Vector2(20,20))
-		)
-		shop_items_container.add_child(btn)
+		var shelf_tex = load("res://images/" + s["icon"])
+		
+		var shelf_panel = PanelContainer.new()
+		shelf_panel.custom_minimum_size = Vector2(180, 200)
+		shelf_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		if shelf_tex:
+			var style = StyleBoxTexture.new()
+			style.texture = shelf_tex
+			shelf_panel.add_theme_stylebox_override("panel", style)
+		vbox.add_child(shelf_panel)
+		
+		var inner = VBoxContainer.new()
+		inner.alignment = BoxContainer.ALIGNMENT_CENTER
+		inner.add_theme_constant_override("separation", 6)
+		shelf_panel.add_child(inner)
+		
+		var is_figure = s["type"] == "figure" or (s["type"] == "random" and randf() < 0.5)
+		
+		if is_figure:
+			var ft = figure_pool[randi() % figure_pool.size()]
+			var cost = s.get("cost", s.get("cost_figure", 8))
+			var data = PieceData.registry.get(ft, PieceData.registry[PieceType.PAWN])
+			var type_name = data.get("title", "Unknown")
+			var tex = PieceData.get_piece_texture(ft, true)
+			
+			var icon = TextureRect.new()
+			if tex:
+				icon.texture = tex
+			icon.custom_minimum_size = Vector2(64, 64)
+			icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+			icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			inner.add_child(icon)
+			
+			var info = Label.new()
+			info.text = type_name + "\n$" + str(cost)
+			info.set("theme_override_colors/font_color", Color.WHITE)
+			info.set("theme_override_font_sizes/font_size", 16)
+			info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			inner.add_child(info)
+			
+			var btn = Button.new()
+			btn.text = "Buy"
+			btn.custom_minimum_size = Vector2(120, 36)
+			btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			btn.pressed.connect(buy_item.bind(ft, cost, btn, false))
+			btn.gui_input.connect(func(event):
+				if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+					inventory_manager.show_item_info(PieceType.keys()[ft], btn.global_position + Vector2(20,20))
+			)
+			vbox.add_child(btn)
+		else:
+			var it = item_pool[randi() % item_pool.size()]
+			var cost = s.get("cost", s.get("cost_item", 10))
+			
+			var icon = TextureRect.new()
+			icon.texture = inventory_manager.get_item_texture(it)
+			icon.custom_minimum_size = Vector2(64, 64)
+			icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+			icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			inner.add_child(icon)
+			
+			var info = Label.new()
+			info.text = it.replace("_", " ").capitalize() + "\n$" + str(cost)
+			info.set("theme_override_colors/font_color", Color.WHITE)
+			info.set("theme_override_font_sizes/font_size", 16)
+			info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			inner.add_child(info)
+			
+			var btn = Button.new()
+			btn.text = "Buy"
+			btn.custom_minimum_size = Vector2(120, 36)
+			btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			btn.pressed.connect(buy_item.bind(it, cost, btn, true))
+			btn.gui_input.connect(func(event):
+				if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+					inventory_manager.show_item_info(it, btn.global_position + Vector2(20,20))
+			)
+			vbox.add_child(btn)
 
 func buy_item(type, cost, btn, is_item):
 	if coins >= cost:
@@ -2140,7 +2125,7 @@ func start_next_level(node_info):
 	for h in hazards: if is_instance_valid(h): h.queue_free()
 	hazards.clear()
 	blood_hazards.clear()
-	for p in player_pawns + bot_pawns:
+	for p in p_pieces:
 		if is_instance_valid(p):
 			p.bleed_stacks = 0
 			p.burn_stacks = 0
@@ -2202,8 +2187,7 @@ func start_next_level(node_info):
 	if node_info.type == map_manager.NodeType.BOSS:
 		num_rocks = 0; num_poops = 0; num_barrels = 0; num_bots = 0
 		var boss_spot = obstacle_spots.pop_back()
-		EnemySpawner.spawn_piece(self, boss_spot.x, boss_spot.y, false, PieceType.BOSS_BODY)
-		EnemySpawner.spawn_piece(self, boss_spot.x, boss_spot.y - 1, false, PieceType.BOSS_HEAD)
+		EnemySpawner.spawn_piece(self, boss_spot.x, boss_spot.y, false, PieceType.BOSS_DEADKING)
 	elif node_info.type == map_manager.NodeType.ELITE:
 		num_bots = min(num_bots + 1, 9)
 		num_rocks = 3
@@ -2238,9 +2222,9 @@ func start_next_level(node_info):
 		if node_info.floor > 2 and randf() < 0.2: btype = PieceType.BISHOP
 		if node_info.floor > 3 and randf() < 0.15: btype = PieceType.ROOK
 		if node_info.floor > 4 and randf() < 0.1: btype = PieceType.QUEEN
-		if node_info.floor > 1 and randf() < 0.12: btype = PieceType.EVIL_EYE
 		EnemySpawner.spawn_piece(self, spot.x, spot.y, false, btype)
 		
+	update_graveyard_ui()
 	save_game_state()
 
 func start_dark_mirror_targeting(_p, slot_ui = null):
@@ -2249,6 +2233,7 @@ func start_dark_mirror_targeting(_p, slot_ui = null):
 	active_item_slot_ui = slot_ui
 	if active_item_slot_ui:
 		active_item_slot_ui.modulate = Color(0.2, 0.8, 1.0)
+	if cancel_btn: cancel_btn.show()
 	status_label.text = "Select adjacent empty tile for clone..."
 	status_label.set("theme_override_colors/font_color", Color.CYAN)
 
@@ -2258,6 +2243,7 @@ func start_hand_targeting(_p, slot_ui = null):
 	active_item_slot_ui = slot_ui
 	if active_item_slot_ui:
 		active_item_slot_ui.modulate = Color(1.0, 0.8, 0.2)
+	if cancel_btn: cancel_btn.show()
 	status_label.text = "Select enemy up to 2 cells orthogonally..."
 	status_label.set("theme_override_colors/font_color", Color.ORANGE)
 
@@ -2267,6 +2253,7 @@ func start_blood_knife_targeting(_p, slot_ui = null):
 	active_item_slot_ui = slot_ui
 	if active_item_slot_ui:
 		active_item_slot_ui.modulate = Color(0.2, 0.8, 1.0)
+	if cancel_btn: cancel_btn.show()
 	status_label.text = "Select target to bleed (range 3)..."
 	status_label.set("theme_override_colors/font_color", Color.RED)
 
@@ -2276,6 +2263,7 @@ func start_torch_targeting(_p, slot_ui = null):
 	active_item_slot_ui = slot_ui
 	if active_item_slot_ui:
 		active_item_slot_ui.modulate = Color(0.2, 0.8, 1.0)
+	if cancel_btn: cancel_btn.show()
 	status_label.text = "Select target to burn (range 3)..."
 	status_label.set("theme_override_colors/font_color", Color.ORANGE)
 
@@ -2284,6 +2272,7 @@ func start_finger_targeting(_p, slot_ui = null):
 	state = GameState.TARGETING_FINGER
 	active_item_slot_ui = slot_ui
 	if active_item_slot_ui: active_item_slot_ui.modulate = Color(1.0, 0.2, 0.8)
+	if cancel_btn: cancel_btn.show()
 	status_label.text = "Select an enemy to command..."
 	status_label.set("theme_override_colors/font_color", Color.MAGENTA)
 
@@ -2315,30 +2304,7 @@ func spawn_clone_piece(original, target_pos):
 	vfx_manager.show_floating_text(target_pos, "CLONED!", Color.CYAN)
 
 func check_nightmare_pawns_interaction(moved_piece):
-	if not is_instance_valid(moved_piece) or moved_piece.current_hp <= 0: return
-	
-	var _orthogonal_dirs = [Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1)]
-	
-	var diagonal_dirs = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]
-	if moved_piece.piece_type == PieceType.NIGHTMARE_PAWN:
-		for d in diagonal_dirs:
-			var adj_pos = moved_piece.grid_pos + d
-			if board.has(adj_pos):
-				var adj_piece = board[adj_pos]
-				if is_instance_valid(adj_piece) and adj_piece != moved_piece and not adj_piece.has_meta("is_obstacle"):
-					vfx_manager.show_floating_text(moved_piece.grid_pos, "NIGHTMARE STRIKE!", Color.DARK_RED)
-					take_damage(adj_piece, 1, moved_piece)
-	else:
-		if moved_piece.has_meta("is_obstacle"): return
-		for d in diagonal_dirs:
-			var adj_pos = moved_piece.grid_pos + d
-			if board.has(adj_pos):
-				var adj_piece = board[adj_pos]
-				if is_instance_valid(adj_piece) and adj_piece.piece_type == PieceType.NIGHTMARE_PAWN:
-					vfx_manager.show_floating_text(adj_piece.grid_pos, "NIGHTMARE STRIKE!", Color.DARK_RED)
-					take_damage(moved_piece, 1, adj_piece)
-					if not is_instance_valid(moved_piece) or moved_piece.current_hp <= 0:
-						break
+	combat_manager.check_nightmare_pawns_interaction(moved_piece)
 
 
 
@@ -2372,6 +2338,7 @@ func update_map_scroll():
 	else:
 		target_y = clamp(target_y, min_y, max_y)
 	
+	target_y += 150
 	var target_pos = Vector2(BOARD_OFFSET.x, target_y)
 	
 	if map_scroll_tween and map_scroll_tween.is_running():
@@ -2534,6 +2501,7 @@ func start_map_node(node):
 	match int(node.type):
 		map_manager.NodeType.SHOP:
 			state = GameState.SHOP
+			shop_rerolls_used = 0
 			generate_shop()
 			shop_panel.show()
 			save_game_state()
@@ -2576,3 +2544,110 @@ func create_grid_labels():
 		lbl.position = Vector2(-65, y * CELL_SIZE_V.y)
 		lbl.custom_minimum_size = Vector2(50, CELL_SIZE_V.y)
 		board_node.add_child(lbl)
+
+const LEVEL_UP_OPTIONS = {
+	"hp": {"label": "+1 HP", "desc": "Increases max HP by 1\nand heals 1 HP."},
+	"atk": {"label": "+1 ATK", "desc": "Increases attack\ndamage by 1."},
+	"range": {"label": "+1 Range", "desc": "Increases attack\nrange by 1."},
+}
+
+const SPECIAL_UPGRADES = {
+	PieceType.PAWN: {"label": "Promotion", "desc": "+1 ATK, +1 Range.\nGains queen-like power."},
+	PieceType.KNIGHT: {"label": "Jumper", "desc": "+2 ATK. Critical\nhits deal double."},
+	PieceType.BISHOP: {"label": "Narrow Escape", "desc": "Gains +1 Soul Heart.\nBlocks 1 damage."},
+	PieceType.ROOK: {"label": "Fortress", "desc": "+2 max HP. Starts\nwith 1 Soul Heart."},
+	PieceType.QUEEN: {"label": "Royal Blood", "desc": "Heals 1 HP on\nkill."},
+	PieceType.KING: {"label": "Crown", "desc": "+1 Soul Heart.\n+1 ATK."},
+	PieceType.BLOOD_QUEEN: {"label": "Bloodlust", "desc": "Attacks inflict\n1 Bleed stack."},
+	PieceType.NIGHTMARE_PAWN: {"label": "Night Terror", "desc": "Nightmare attacks\ndeal +1 damage."},
+	PieceType.TELEPAWN: {"label": "Wide Warp", "desc": "Teleports up to\n3 tiles away."},
+	PieceType.SPIKED_PAWN: {"label": "Iron Spikes", "desc": "Retaliate for\n2 damage."},
+	PieceType.CHECKER: {"label": "Double Stack", "desc": "Can stack 2\ncheckers deep."},
+}
+
+func show_level_up_screen():
+	if is_levelup_active:
+		return
+	is_levelup_active = true
+	
+	var valid_pawns = []
+	for p in player_pawns:
+		if is_instance_valid(p):
+			valid_pawns.append(p)
+	if valid_pawns.is_empty():
+		is_levelup_active = false
+		start_map_mode()
+		return
+	var upgrade_piece = valid_pawns[randi() % valid_pawns.size()]
+	
+	var level_up = load("res://scripts/LevelUpScreen.gd").new()
+	ui_layer.add_child(level_up)
+	level_up.setup(upgrade_piece.piece_type, upgrade_piece.is_player, upgrade_piece.level)
+	
+	level_up.hp_upgraded.connect(func():
+		apply_piece_upgrade(upgrade_piece, "hp")
+		level_up.queue_free()
+		is_levelup_active = false
+		start_map_mode()
+	)
+	
+	level_up.atk_upgraded.connect(func():
+		apply_piece_upgrade(upgrade_piece, "atk")
+		level_up.queue_free()
+		is_levelup_active = false
+		start_map_mode()
+	)
+	
+	level_up.tree_exited.connect(func():
+		is_levelup_active = false
+	)
+
+func apply_piece_upgrade(piece, upgrade_type):
+	if not is_instance_valid(piece):
+		return
+	piece.level += 1
+	match upgrade_type:
+		"atk":
+			piece.attack_damage += 1
+			vfx_manager.show_floating_text(piece.grid_pos, "ATK+1!", Color.ORANGE)
+		"hp":
+			piece.max_hp += 1
+			piece.current_hp = mini(piece.current_hp + 1, piece.max_hp)
+			vfx_manager.show_floating_text(piece.grid_pos, "HP+1!", Color.GREEN)
+		"special":
+			apply_special_upgrade(piece)
+
+func apply_special_upgrade(piece):
+	var pt = piece.piece_type
+	match pt:
+		PieceType.PAWN:
+			piece.attack_damage += 1
+			piece.attack_range += 1
+		PieceType.KNIGHT:
+			piece.attack_damage += 2
+		PieceType.BISHOP:
+			piece.soul_hearts += 1
+		PieceType.ROOK:
+			piece.max_hp += 2
+			piece.current_hp = mini(piece.current_hp + 2, piece.max_hp)
+			piece.soul_hearts += 1
+		PieceType.QUEEN:
+			piece.set_meta("heal_on_kill", true)
+		PieceType.KING:
+			piece.soul_hearts += 1
+			piece.attack_damage += 1
+		PieceType.BLOOD_QUEEN:
+			piece.set_meta("bleed_on_attack", true)
+		PieceType.NIGHTMARE_PAWN:
+			piece.set_meta("nightmare_bonus_dmg", 1)
+		PieceType.TELEPAWN:
+			piece.set_meta("warp_range", 3)
+		PieceType.SPIKED_PAWN:
+			piece.set_meta("spike_damage", 2)
+		PieceType.CHECKER:
+			piece.set_meta("max_checker_stack", 2)
+		_:
+			piece.attack_damage += 1
+			piece.max_hp += 1
+			piece.current_hp = mini(piece.current_hp + 1, piece.max_hp)
+	vfx_manager.show_floating_text(piece.grid_pos, "SPECIAL UPGRADE!", Color.MAGENTA)

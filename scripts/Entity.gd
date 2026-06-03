@@ -11,8 +11,9 @@ var soul_hearts: int = 0
 var attack_damage: int = 1
 var attack_range: int = 1
 var attack_type: String = "melee" # melee, projectile, laser, splash
-var cooldown: int = 0 # Actions wait this many turns before acting again
+var cooldown: int = 0
 var current_cooldown: int = 0
+var level: int = 1
 
 var has_spikes: bool = false
 var is_player: bool = false

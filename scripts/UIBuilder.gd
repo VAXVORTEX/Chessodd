@@ -98,6 +98,16 @@ static func create_ui(main: Node):
 				var art = slot.get_meta("item_id")
 				var viewed_piece = main.info_panel.get_meta("viewed_piece")
 				if is_instance_valid(viewed_piece) and art in ["bottle", "dark_mirror", "hand", "blood_knife", "torch", "finger"]:
+					var can_use = false
+					match art:
+						"bottle": can_use = not viewed_piece.bottle_used_this_level
+						"dark_mirror": can_use = not main.mirror_used_this_level
+						"hand": can_use = not viewed_piece.get_meta("hand_used_this_turn", false)
+						"blood_knife": can_use = not viewed_piece.get_meta("blood_knife_used_this_turn", false)
+						"torch": can_use = not viewed_piece.get_meta("torch_used_this_turn", false)
+						"finger": can_use = not viewed_piece.get_meta("finger_used_this_turn", false)
+					if not can_use:
+						return
 					main.selected_piece = viewed_piece
 					main.overlay.queue_redraw()
 					if art == "bottle": main.start_bottle_targeting(viewed_piece, slot)
@@ -105,7 +115,6 @@ static func create_ui(main: Node):
 					elif art == "hand": main.start_hand_targeting(viewed_piece, slot)
 					elif art == "blood_knife": main.start_blood_knife_targeting(viewed_piece, slot)
 					elif art == "torch": main.start_torch_targeting(viewed_piece, slot)
-					elif art == "finger": main.start_finger_targeting(viewed_piece, slot)
 					elif art == "finger": main.start_finger_targeting(viewed_piece, slot)
 		)
 		var slot_sb = StyleBoxFlat.new()
@@ -188,6 +197,16 @@ static func create_ui(main: Node):
 	pause_btn.custom_minimum_size = Vector2(120, 50)
 	pause_btn.pressed.connect(func(): main.toggle_pause_menu())
 	hud_hbox.add_child(pause_btn)
+	
+	var cancel_btn = Button.new()
+	cancel_btn.text = "Cancel"
+	cancel_btn.set("theme_override_font_sizes/font_size", 24)
+	cancel_btn.custom_minimum_size = Vector2(120, 50)
+	cancel_btn.modulate = Color(0.8, 0.3, 0.3)
+	cancel_btn.pressed.connect(func(): main.cancel_active_item())
+	cancel_btn.hide()
+	hud_hbox.add_child(cancel_btn)
+	main.cancel_btn = cancel_btn
 	
 	var right_hud_panel = PanelContainer.new()
 	right_hud_panel.name = "RightHUDPanel"
@@ -620,10 +639,18 @@ static func create_ui(main: Node):
 	shop_hbox.add_child(shop_next_btn)
 	
 	var reroll_btn = Button.new()
-	reroll_btn.text = "Reroll ($2)"
+	reroll_btn.text = "Reroll ($3)"
 	reroll_btn.set("theme_override_font_sizes/font_size", 32)
 	reroll_btn.custom_minimum_size = Vector2(300, 80)
-	reroll_btn.pressed.connect(func(): if main.coins >= 2: main.coins -= 2; main.update_ui(); main.generate_shop())
+	reroll_btn.pressed.connect(func():
+		if main.shop_rerolls_used == 0 and main.coins >= 3:
+			main.coins -= 3
+			main.shop_rerolls_used = 1
+			main.update_ui()
+			reroll_btn.disabled = true
+			reroll_btn.text = "Rerolled"
+			main.generate_shop()
+	)
 	shop_hbox.add_child(reroll_btn)
 	
 	var shop_start_btn = Button.new()
@@ -748,18 +775,21 @@ static func create_ui(main: Node):
 	gy_vbox.add_child(enemy_gy_title)
 	
 	var egy_scroll = ScrollContainer.new()
-	egy_scroll.custom_minimum_size = Vector2(0, 140)
+	egy_scroll.custom_minimum_size = Vector2(0, 160)
+	egy_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	egy_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	egy_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	egy_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	egy_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	egy_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	gy_vbox.add_child(egy_scroll)
 	
 	var egy_margin = MarginContainer.new()
-	egy_margin.add_theme_constant_override("margin_top", 16)
-	egy_margin.add_theme_constant_override("margin_bottom", 16)
+	egy_margin.add_theme_constant_override("margin_top", 8)
+	egy_margin.add_theme_constant_override("margin_bottom", 8)
+	egy_margin.add_theme_constant_override("margin_left", 8)
+	egy_margin.add_theme_constant_override("margin_right", 8)
 	egy_scroll.add_child(egy_margin)
 	main.enemy_graveyard_container = HBoxContainer.new()
-	main.enemy_graveyard_container.add_theme_constant_override("separation", -64)
+	main.enemy_graveyard_container.add_theme_constant_override("separation", -60)
 	egy_margin.add_child(main.enemy_graveyard_container)
 
 	main.lbl_graveyard_title = Label.new()
@@ -770,18 +800,21 @@ static func create_ui(main: Node):
 	gy_vbox.add_child(main.lbl_graveyard_title)
 	
 	var gy_scroll = ScrollContainer.new()
-	gy_scroll.custom_minimum_size = Vector2(0, 140)
+	gy_scroll.custom_minimum_size = Vector2(0, 160)
+	gy_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	gy_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	gy_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	gy_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	gy_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	gy_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	gy_vbox.add_child(gy_scroll)
 	
 	var gy_margin = MarginContainer.new()
-	gy_margin.add_theme_constant_override("margin_top", 16)
-	gy_margin.add_theme_constant_override("margin_bottom", 16)
+	gy_margin.add_theme_constant_override("margin_top", 8)
+	gy_margin.add_theme_constant_override("margin_bottom", 8)
+	gy_margin.add_theme_constant_override("margin_left", 8)
+	gy_margin.add_theme_constant_override("margin_right", 8)
 	gy_scroll.add_child(gy_margin)
 	main.graveyard_container = HBoxContainer.new()
-	main.graveyard_container.add_theme_constant_override("separation", -64)
+	main.graveyard_container.add_theme_constant_override("separation", -60)
 	gy_margin.add_child(main.graveyard_container)
 
 	main.ui_layer.move_child(hud_panel, -1)

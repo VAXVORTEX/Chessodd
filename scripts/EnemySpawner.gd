@@ -58,6 +58,10 @@ static func spawn_piece(main: Node, x: int, y: int, is_player: bool, type: int =
 	shadow.z_index = -1 # Draw behind the piece
 	p.add_child(shadow)
 	
+	if main.board.has(Vector2(x, y)):
+		var existing = main.board[Vector2(x, y)]
+		main.board_node.remove_child(existing)
+		if existing.has_method("queue_free"): existing.queue_free()
 	main.board_node.add_child(p)
 	main.board[Vector2(x, y)] = p
 		

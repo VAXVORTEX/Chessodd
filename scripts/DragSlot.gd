@@ -29,7 +29,20 @@ func _ready():
 	)
 	
 	var m3 = get_tree().get_first_node_in_group("main")
-	# Lock removed so players can drag items mid-combat
+	if slot_type == "piece" and m3 and m3.state != m3.GameState.SHOP and m3.state != m3.GameState.MAP:
+		var lock_rect = ColorRect.new()
+		lock_rect.color = Color(0, 0, 0, 0.6)
+		lock_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		add_child(lock_rect)
+		
+		var lock_lbl = Label.new()
+		lock_lbl.text = "X"
+		lock_lbl.set("theme_override_font_sizes/font_size", 40)
+		lock_lbl.set("theme_override_colors/font_color", Color(0.7, 0.7, 0.7, 0.9))
+		lock_lbl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		lock_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lock_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		lock_rect.add_child(lock_lbl)
 
 func _gui_input(event):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
@@ -43,7 +56,7 @@ func _get_drag_data(at_position):
 	if item_id == "": return null
 	
 	var main = get_tree().get_first_node_in_group("main")
-	if main and main.state != main.GameState.SHOP and main.state != main.GameState.MAP and not main.inv_panel.visible: return null
+	if main and main.state != main.GameState.SHOP and main.state != main.GameState.MAP: return null
 	
 	var c = Control.new()
 	c.z_index = 4096
@@ -63,7 +76,7 @@ func _get_drag_data(at_position):
 
 func _can_drop_data(at_position, data):
 	var main = get_tree().get_first_node_in_group("main")
-	if main and main.state != main.GameState.SHOP and main.state != main.GameState.MAP and not main.inv_panel.visible: return false
+	if main and main.state != main.GameState.SHOP and main.state != main.GameState.MAP: return false
 	return data is DragSlot and data != self
 
 func _drop_data(_at_position, data):

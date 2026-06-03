@@ -11,7 +11,8 @@ static func process_bot_turn(main: Node) -> bool:
 		
 	var moved = false
 	for b in main.bot_pawns:
-		if is_instance_valid(b) and b.current_cooldown > 0: b.current_cooldown -= 1
+		if is_instance_valid(b) and b.current_cooldown > 0:
+			b.current_cooldown -= 1
 	
 	var player_threats = []
 	for p in main.player_pawns:
@@ -19,7 +20,9 @@ static func process_bot_turn(main: Node) -> bool:
 			var pmoves = main.get_valid_moves(p)
 			for m in pmoves:
 				if not player_threats.has(m):
-					player_threats.append(m)
+					var threat_target = main.board.get(m)
+					if threat_target and not threat_target.is_player:
+						player_threats.append(m)
 					
 	var boss_acted = false
 	var boss_head = null
@@ -32,6 +35,8 @@ static func process_bot_turn(main: Node) -> bool:
 		
 		if b.piece_type == main.PieceType.BOSS_DEADKING:
 			boss_acted = true
+			if b.current_cooldown > 0:
+				continue
 			var closest_p = null
 			var min_d = 999
 			for p in main.player_pawns:
@@ -41,8 +46,8 @@ static func process_bot_turn(main: Node) -> bool:
 						min_d = d
 						closest_p = p
 			
+			var best_target = null
 			if closest_p:
-				var best_target = null
 				var best_dist = 999
 				var dirs = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1), Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1)]
 				for d in dirs:
@@ -52,15 +57,22 @@ static func process_bot_turn(main: Node) -> bool:
 						if dist_to_player < best_dist:
 							best_dist = dist_to_player
 							best_target = target_pos
-				
-				if best_target != null:
-					main.perform_action(b, best_target)
-				else:
-					main.show_floating_text(b.grid_pos, "BLOCKED!", Color.GRAY)
+			
+			if best_target != null:
+				main.perform_action(b, best_target)
+				b.current_cooldown = b.cooldown
+			else:
+				main.show_floating_text(b.grid_pos, "BLOCKED!", Color.GRAY)
 			moved = true
 
 	if boss_body or boss_head:
 		boss_acted = true
+		var boss_moved = false
+		
+		if boss_body and boss_body.current_cooldown > 0:
+			boss_body = null
+		if boss_head and boss_head.current_cooldown > 0:
+			boss_head = null
 		
 		if boss_body:
 			var closest_p = null
@@ -116,11 +128,12 @@ static func process_bot_turn(main: Node) -> bool:
 						main.take_damage(target, 2)
 					main.show_floating_text(best_t, "SMASH!", Color.RED)
 					
-				tween.tween_callback(func(): main.check_nightmare_pawns_interaction(boss_body))
 				main.end_turn_with_tween(boss_body, best_t, tween, false, boss_head != null)
+				boss_body.current_cooldown = boss_body.cooldown
 				body_moved = true
+				boss_moved = true
 				
-			if not body_moved: main.show_floating_text(boss_body.grid_pos, "STUCK!", Color.GRAY)
+			if boss_body and not body_moved: main.show_floating_text(boss_body.grid_pos, "STUCK!", Color.GRAY)
 		
 		if boss_head:
 			var head_moved = false
@@ -169,6 +182,9 @@ static func process_bot_turn(main: Node) -> bool:
 				# Process push chain in REVERSE order (from furthest to closest)
 				for j in range(push_chain.size() - 1, -1, -1):
 					var piece = push_chain[j]
+					if piece.piece_type == main.PieceType.BOMB_BARREL:
+						main.take_damage(piece, 1)
+						continue
 					var p_pos = piece.grid_pos
 					var dest_pos = p_pos + best_dir
 					
@@ -204,83 +220,41 @@ static func process_bot_turn(main: Node) -> bool:
 				
 				if is_instance_valid(boss_head) and boss_head.current_hp > 0:
 					tween.tween_property(boss_head, "position", boss_head.grid_pos * main.CELL_SIZE_V + (main.CELL_SIZE_V / 2.0), 0.3)
-					tween.tween_callback(func(): main.check_nightmare_pawns_interaction(boss_head))
 				
 				main.end_turn_with_tween(boss_head, boss_head.grid_pos if is_instance_valid(boss_head) else best_t, tween)
+				boss_head.current_cooldown = boss_head.cooldown
 				head_moved = true
-			if not head_moved: main.show_floating_text(boss_head.grid_pos, "STUCK!", Color.GRAY)
+				boss_moved = true
+			if not head_moved:
+				h_dirs = [Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1)]
+				h_dirs.shuffle()
+				for d in h_dirs:
+					var t = boss_head.grid_pos + d * 2
+					if main.is_inside(t) and not main.board.has(t):
+						var tween = main.create_tween()
+						main.board.erase(boss_head.grid_pos)
+						boss_head.grid_pos = t
+						main.board[t] = boss_head
+						tween.tween_property(boss_head, "position", t * main.CELL_SIZE_V + (main.CELL_SIZE_V / 2.0), 0.3)
+						main.end_turn_with_tween(boss_head, t, tween)
+						boss_head.current_cooldown = boss_head.cooldown
+						head_moved = true
+						boss_moved = true
+						break
+				if not head_moved:
+					main.show_floating_text(boss_head.grid_pos, "STUCK!", Color.GRAY)
 			
-		moved = true
-		
-	if boss_acted:
-		if not moved: 
-			main.current_turn = 0
-			main.turn_count += 1
-			main.status_label.text = "Player Turn %d" % main.turn_count
-			main.status_label.set("theme_override_colors/font_color", Color.WHITE)
-			main.check_win_condition()
+		if boss_moved:
 			moved = true
-		return moved
+		
+	if boss_acted and not moved:
+		main.current_turn = 0
+		main.turn_count += 1
+		main.status_label.text = "Player Turn %d" % main.turn_count
+		main.status_label.set("theme_override_colors/font_color", Color.WHITE)
+		main.check_win_condition()
+		moved = true
 					
-	for eye in main.bot_pawns:
-		if not is_instance_valid(eye) or eye.piece_type != main.PieceType.EVIL_EYE: continue
-		var adjacent_player = false
-		var eg = eye.grid_pos
-		for d in [Vector2(-1,0), Vector2(1,0), Vector2(0,-1), Vector2(0,1), Vector2(-1,-1), Vector2(1,-1), Vector2(-1,1), Vector2(1,1)]:
-			var t = eg + d
-			if main.board.has(t) and not main.board[t].has_meta("is_obstacle") and main.board[t].is_player:
-				adjacent_player = true
-				break
-		
-		if adjacent_player:
-			var retreat_dirs = [Vector2(-1,0), Vector2(1,0), Vector2(0,-1), Vector2(0,1)]
-			retreat_dirs.shuffle()
-			var best_retreat = null
-			var best_dist = -1
-			for d in retreat_dirs:
-				var t = eg + d
-				if main.is_inside(t) and not main.board.has(t):
-					var min_pdist = 999
-					for p in main.player_pawns:
-						if is_instance_valid(p):
-							var pd = abs(t.x - p.grid_pos.x) + abs(t.y - p.grid_pos.y)
-							if pd < min_pdist: min_pdist = pd
-					if min_pdist > best_dist:
-						best_dist = min_pdist
-						best_retreat = t
-			if best_retreat:
-				main.board.erase(eg)
-				eye.grid_pos = best_retreat
-				main.board[best_retreat] = eye
-				var tween = main.create_tween()
-				tween.tween_property(eye, "position", best_retreat * main.CELL_SIZE_V + (main.CELL_SIZE_V / 2.0), 0.3)
-				main.show_floating_text(eg, "RETREATS!", Color.YELLOW)
-			if eye.has_meta("eye_target"): eye.remove_meta("eye_target")
-			if eye.has_meta("eye_aiming"): eye.remove_meta("eye_aiming")
-			eye.modulate = Color.WHITE
-			continue
-		
-		if eye.has_meta("eye_aiming") and eye.get_meta("eye_aiming"):
-			var target_pos = eye.get_meta("eye_target")
-			if main.board.has(target_pos) and main.board[target_pos].is_player:
-				main.take_damage(main.board[target_pos], eye.attack_damage)
-				main.show_floating_text(target_pos, "ZAP!", Color.RED)
-			else:
-				main.show_floating_text(eg, "MISS!", Color.GRAY)
-			eye.remove_meta("eye_aiming")
-			eye.remove_meta("eye_target")
-			eye.modulate = Color.WHITE
-		else:
-			var targets = []
-			for p in main.player_pawns:
-				if is_instance_valid(p): targets.append(p.grid_pos)
-			if targets.size() > 0:
-				targets.shuffle()
-				eye.set_meta("eye_target", targets[0])
-				eye.set_meta("eye_aiming", true)
-				eye.modulate = Color(1, 0.3, 0.3)
-				main.show_floating_text(eg, "TARGETING...", Color(1, 0.3, 0.3))
-	
 	var best_bot = null
 	var best_move = null
 	var best_score = -99999
@@ -293,7 +267,7 @@ static func process_bot_turn(main: Node) -> bool:
 
 	for bot in main.bot_pawns:
 		if not is_instance_valid(bot): continue
-		if bot.piece_type == main.PieceType.EVIL_EYE: continue
+		if bot.current_cooldown > 0: continue
 		
 		var moves = main.get_valid_moves(bot)
 		var currently_threatened = player_threats.has(bot.grid_pos)
@@ -310,6 +284,8 @@ static func process_bot_turn(main: Node) -> bool:
 				score += val
 			elif target and target.has_meta("is_obstacle") and target.piece_type == main.PieceType.POOP:
 				score += 5
+			elif target and target.piece_type == main.PieceType.BOMB_BARREL:
+				score -= 30
 				
 			# Aggressive tracking of the King
 			if player_king_pos != null:
@@ -327,6 +303,15 @@ static func process_bot_turn(main: Node) -> bool:
 				elif currently_threatened:
 					score += 8 # Slight bonus for escaping
 					
+			# HP-aware: low HP bots play defensively
+			var hp_ratio = bot.current_hp * 1.0 / bot.max_hp
+			if hp_ratio < 0.4:
+				score -= 10
+			elif hp_ratio < 0.7:
+				if moves_into_threat:
+					score -= 10
+				score -= 3
+			
 			# Prefer moving forward and center
 			score += 3.0 - abs(m.x - 2) * 0.8
 			if m.y > bot.grid_pos.y: score += 3.0
@@ -338,6 +323,7 @@ static func process_bot_turn(main: Node) -> bool:
 				
 	if best_bot and best_move:
 		main.perform_action(best_bot, best_move)
+		best_bot.current_cooldown = best_bot.cooldown
 		moved = true
 
 	return moved
