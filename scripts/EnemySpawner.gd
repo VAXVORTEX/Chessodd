@@ -23,8 +23,8 @@ static func spawn_piece(main: Node, x: int, y: int, is_player: bool, type: int =
 		sf = min(main.CELL_SIZE_V.x * 1.3 / ts.x, main.CELL_SIZE_V.y * 1.3 / ts.y)
 	p.scale = Vector2(sf, sf)
 	p.is_player = is_player
-	if not is_player and type != main.PieceType.POOP and type != main.PieceType.ROCK and type != main.PieceType.BOMB_BARREL:
-		p.modulate = Color(1.0, 0.4, 0.4)
+	if not is_player and type in [0, 1, 2, 3, 6, 7]: # Only tint ordinary chess pieces
+		p.self_modulate = Color(1.0, 0.4, 0.4)
 	p.current_hp = max_hp
 	p.max_hp = max_hp
 	p.grid_pos = Vector2(x, y)

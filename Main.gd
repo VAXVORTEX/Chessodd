@@ -5,7 +5,7 @@ const CELL_SIZE_V: Vector2 = Vector2(130, 130)
 @export var CELL_SPACING: Vector2 = Vector2(4, 4)
 const COLS = 5
 const ROWS = 8
-var BOARD_OFFSET: Vector2 = Vector2(650, 20)
+var BOARD_OFFSET: Vector2 = Vector2(635, 40)
 
 enum PieceType { PAWN, KNIGHT, BISHOP, KING, ROCK, POOP, ROOK, QUEEN, SPIKED_PAWN, EVIL_EYE, BOSS_DEADKING, BOSS_HEAD, BOSS_BODY, BOMB_BARREL, TELEPAWN, NIGHTMARE_PAWN, CHECKER, BLOOD_QUEEN, TICK, FIGURECATCHER, BEAR, FUNGUS, SPORE, WOLF }
 enum GameState { PLAYING, SHOP, TARGETING_SACRIFICE, TARGETING_DARK_MIRROR, TARGETING_HAND, MAP, TARGETING_BLOOD_KNIFE, TARGETING_TORCH, TARGETING_FINGER, MAIN_MENU, SAVE_SELECTION }
@@ -1905,13 +1905,13 @@ func update_info_panel(g_pos):
 				for st in statuses:
 					var tex_rect = TextureRect.new()
 					tex_rect.texture = st.tex
-					tex_rect.custom_minimum_size = Vector2(32, 32)
+					tex_rect.custom_minimum_size = Vector2(48, 48)
 					tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 					tex_rect.tooltip_text = st.desc
 					
 					var lbl = Label.new()
 					lbl.text = st.text
-					lbl.set("theme_override_font_sizes/font_size", 12)
+					lbl.set("theme_override_font_sizes/font_size", 20)
 					
 					var hbox = HBoxContainer.new()
 					hbox.add_child(tex_rect)
@@ -2126,7 +2126,13 @@ func generate_shop():
 		var inner = VBoxContainer.new()
 		inner.alignment = BoxContainer.ALIGNMENT_CENTER
 		inner.add_theme_constant_override("separation", 6)
-		shelf_panel.add_child(inner)
+		
+		# Wrapper to move items UP over the shelf
+		var wrap = Control.new()
+		wrap.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		inner.position = Vector2(0, -30)
+		wrap.add_child(inner)
+		shelf_panel.add_child(wrap)
 		
 		var is_figure = s["type"] == "figure" or (s["type"] == "random" and randf() < 0.5)
 		
@@ -2168,7 +2174,7 @@ func generate_shop():
 			
 			var icon = TextureRect.new()
 			icon.texture = inventory_manager.get_item_texture(it)
-			icon.custom_minimum_size = Vector2(64, 64)
+			icon.custom_minimum_size = Vector2(96, 96)
 			icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 			icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 			inner.add_child(icon)
@@ -2335,7 +2341,7 @@ func start_next_level(node_info):
 	var num_rocks = randi_range(1, 2)
 	var num_poops = randi_range(1, 2)
 	var num_barrels = randi_range(0, 1)
-	var num_bots = min(int(node_info.floor / 2.0) + 2, 8)
+	var num_bots = min(node_info.floor + 3, 10)
 	
 	if node_info.type == map_manager.NodeType.BOSS:
 		num_rocks = 0; num_poops = 0; num_barrels = 0; num_bots = 0
@@ -2376,8 +2382,12 @@ func start_next_level(node_info):
 	while spawned_bots < num_bots and empty_bot_spots.size() > 0:
 		var spot = empty_bot_spots.pop_back()
 		
-		if randf() < 0.7:
+		var unique_chance = 0.6 + (node_info.floor * 0.05)
+		if randf() < unique_chance:
 			var unique_choices = [PieceType.TICK, PieceType.FIGURECATCHER, PieceType.WOLF, PieceType.SPORE]
+			if node_info.floor >= 2:
+				unique_choices.append(PieceType.FUNGUS)
+				unique_choices.append(PieceType.BEAR)
 			var utype = unique_choices[randi() % unique_choices.size()]
 			EnemySpawner.spawn_piece(self, spot.x, spot.y, false, utype)
 			spawned_bots += 1
