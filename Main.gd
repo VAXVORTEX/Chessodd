@@ -2377,44 +2377,76 @@ func start_next_level(node_info):
 				empty_bot_spots.append(Vector2(x, y))
 	empty_bot_spots.shuffle()
 	
-	# Change to while loop since we pop from empty_bot_spots
+	# Point based system
+	var max_points = 5 + (node_info.floor - 1) * 2
+	if node_info.type == map_manager.NodeType.ELITE:
+		max_points += 6
+	
+	var ordinary_pool = [
+		{"type": PieceType.PAWN, "cost": 1},
+		{"type": PieceType.KNIGHT, "cost": 2},
+		{"type": PieceType.BISHOP, "cost": 2},
+		{"type": PieceType.ROOK, "cost": 2},
+		{"type": PieceType.QUEEN, "cost": 3}
+	]
+	
+	var unique_pool = [
+		{"type": PieceType.SPORE, "cost": 1},
+		{"type": PieceType.TICK, "cost": 2},
+		{"type": PieceType.FIGURECATCHER, "cost": 2},
+		{"type": PieceType.WOLF, "cost": 2},
+		{"type": PieceType.FUNGUS, "cost": 3},
+		{"type": PieceType.BEAR, "cost": 3}
+	]
+	
 	var spawned_bots = 0
-	while spawned_bots < num_bots and empty_bot_spots.size() > 0:
-		var spot = empty_bot_spots.pop_back()
+	var current_points = 0
+	
+	while current_points < max_points and spawned_bots < 15 and empty_bot_spots.size() > 0:
+		var budget = max_points - current_points
 		
-		var unique_chance = 0.6 + (node_info.floor * 0.05)
-		if randf() < unique_chance:
-			var unique_choices = [PieceType.TICK, PieceType.FIGURECATCHER, PieceType.WOLF, PieceType.SPORE]
-			if node_info.floor >= 2:
-				unique_choices.append(PieceType.FUNGUS)
-				unique_choices.append(PieceType.BEAR)
-			var utype = unique_choices[randi() % unique_choices.size()]
-			EnemySpawner.spawn_piece(self, spot.x, spot.y, false, utype)
+		# Filter available pools
+		var avail_ord = ordinary_pool.filter(func(x): return x.cost <= budget)
+		var avail_uniq = unique_pool.filter(func(x): return x.cost <= budget)
+		
+		if avail_ord.size() == 0 and avail_uniq.size() == 0:
+			break
+			
+		var chosen_pool = null
+		if avail_ord.size() == 0:
+			chosen_pool = avail_uniq
+		elif avail_uniq.size() == 0:
+			chosen_pool = avail_ord
+		else:
+			# 10% ordinary, 90% unique
+			chosen_pool = avail_uniq if randf() < 0.9 else avail_ord
+			
+		var pick = chosen_pool[randi() % chosen_pool.size()]
+		var utype = pick.type
+		current_points += pick.cost
+		
+		var spot = empty_bot_spots.pop_back()
+		EnemySpawner.spawn_piece(self, spot.x, spot.y, false, utype)
+		spawned_bots += 1
+		
+		if utype == PieceType.SPORE and empty_bot_spots.size() > 0 and current_points + 1 <= max_points:
+			current_points += 1
+			var spot2 = empty_bot_spots.pop_back()
+			EnemySpawner.spawn_piece(self, spot2.x, spot2.y, false, PieceType.SPORE)
 			spawned_bots += 1
 			
-			if utype == PieceType.SPORE and empty_bot_spots.size() > 0:
-				var spot2 = empty_bot_spots.pop_back()
-				EnemySpawner.spawn_piece(self, spot2.x, spot2.y, false, PieceType.SPORE)
-				spawned_bots += 1
-				
-		# If this is the last bot and NO other bots spawned except Spores, force spawn something else
-		var is_last = (spawned_bots >= num_bots or empty_bot_spots.size() == 0)
-		var only_spores = true
-		for b in bot_pawns:
-			if is_instance_valid(b) and b.piece_type != PieceType.SPORE:
+	# Prevent only spores
+	var only_spores = true
+	var any_bot = false
+	for b in board_node.get_children():
+		if b is Entity and not b.is_player and not b.has_meta("is_obstacle"):
+			any_bot = true
+			if b.piece_type != PieceType.SPORE:
 				only_spores = false
-		if is_last and only_spores and empty_bot_spots.size() > 0:
-			var spot3 = empty_bot_spots.pop_back()
-			EnemySpawner.spawn_piece(self, spot3.x, spot3.y, false, PieceType.WOLF if randf() < 0.5 else PieceType.PAWN)
-			spawned_bots += 1
-		else:
-			var btype = PieceType.PAWN
-			if node_info.floor > 1 and randf() < 0.3: btype = PieceType.KNIGHT
-			if node_info.floor > 2 and randf() < 0.2: btype = PieceType.BISHOP
-			if node_info.floor > 3 and randf() < 0.15: btype = PieceType.ROOK
-			if node_info.floor > 4 and randf() < 0.1: btype = PieceType.QUEEN
-			EnemySpawner.spawn_piece(self, spot.x, spot.y, false, btype)
-			spawned_bots += 1
+	if any_bot and only_spores and empty_bot_spots.size() > 0:
+		var spot3 = empty_bot_spots.pop_back()
+		EnemySpawner.spawn_piece(self, spot3.x, spot3.y, false, PieceType.WOLF if randf() < 0.5 else PieceType.PAWN)
+		spawned_bots += 1
 		
 	update_graveyard_ui()
 	save_game_state()

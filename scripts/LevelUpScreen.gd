@@ -51,6 +51,19 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	figure_icon.custom_minimum_size = Vector2(128, 128)
 	figure_icon.light_mask = 0
 	
+	# Drop Shadow for figure
+	var shadow = TextureRect.new()
+	shadow.name = "DropShadow"
+	if figure_tex:
+		shadow.texture = figure_tex
+	shadow.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	shadow.custom_minimum_size = Vector2(128, 128)
+	shadow.modulate = Color(0, 0, 0, 0.5)
+	shadow.position = Vector2(0, 45) # Lower shadow
+	shadow.scale = Vector2(1.0, 0.5)
+	shadow.show_behind_parent = true
+	figure_icon.add_child(shadow)
+	
 	var center = get_viewport_rect().size / 2.0
 	pivot_offset = center
 	
@@ -59,7 +72,7 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	
 	figure_icon.size = Vector2(128, 128)
 	figure_icon.pivot_offset = figure_icon.size / 2.0
-	figure_icon.scale = Vector2(0.6, 0.6) # Reduced from 0.8
+	figure_icon.scale = Vector2(0.6, 0.6)
 	figure_icon.position = center - (figure_icon.size / 2.0) + Vector2(0, 20)
 	add_child(figure_icon)
 	
@@ -68,7 +81,7 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	btn_left.texture_normal = load("res://images/background_option_levelup.png")
 	btn_left.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	btn_left.ignore_texture_size = true
-	btn_left.custom_minimum_size = Vector2(180, 180)
+	btn_left.custom_minimum_size = Vector2(234, 234) # 30% larger
 	btn_left.light_mask = 0
 	add_child(btn_left)
 	
@@ -77,42 +90,50 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	btn_right.texture_normal = load("res://images/background_option_levelup.png")
 	btn_right.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	btn_right.ignore_texture_size = true
-	btn_right.custom_minimum_size = Vector2(180, 180)
+	btn_right.custom_minimum_size = Vector2(234, 234) # 30% larger
 	btn_right.light_mask = 0
 	add_child(btn_right)
 	
-	# Moved buttons and OR down by 60px
-	btn_left.size = Vector2(180, 180)
-	btn_left.position = center + Vector2(-220, 190)
+	# Moved crystals further left/right
+	btn_left.size = Vector2(234, 234)
+	btn_left.position = center + Vector2(-280, 160)
 	
-	btn_right.size = Vector2(180, 180)
-	btn_right.position = center + Vector2(40, 190)
+	btn_right.size = Vector2(234, 234)
+	btn_right.position = center + Vector2(60, 160)
 	
 	var lbl_title = Label.new()
 	lbl_title.text = "Level up"
-	lbl_title.set("theme_override_font_sizes/font_size", 96) # 2x size
+	lbl_title.set("theme_override_font_sizes/font_size", 96)
 	lbl_title.set("theme_override_colors/font_color", Color.BLACK)
+	lbl_title.set("theme_override_colors/font_shadow_color", Color(0,0,0,0.4))
+	lbl_title.set("theme_override_constants/shadow_offset_x", 3)
+	lbl_title.set("theme_override_constants/shadow_offset_y", 3)
 	lbl_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_title.size = Vector2(400, 120)
-	lbl_title.position = center + Vector2(-280, -220) # Moved left and down
-	lbl_title.rotation_degrees = -20
+	lbl_title.position = center + Vector2(-290, -180) # Lower
+	lbl_title.rotation_degrees = -27 # Better tilt
 	add_child(lbl_title)
 	
 	var lbl_lvl = Label.new()
 	lbl_lvl.text = str(_level_num)
-	lbl_lvl.set("theme_override_font_sizes/font_size", 108) # 2x size
+	lbl_lvl.set("theme_override_font_sizes/font_size", 108)
 	lbl_lvl.set("theme_override_colors/font_color", Color.BLACK)
+	lbl_lvl.set("theme_override_colors/font_shadow_color", Color(0,0,0,0.4))
+	lbl_lvl.set("theme_override_constants/shadow_offset_x", 3)
+	lbl_lvl.set("theme_override_constants/shadow_offset_y", 3)
 	lbl_lvl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_lvl.size = Vector2(160, 160)
-	lbl_lvl.position = center + Vector2(280, -200) # Moved right and slightly up
-	lbl_lvl.rotation_degrees = -15 # Tilted slightly left as it's often more natural, or they meant 180? I'll use 0. Let's make it 0.
-	lbl_lvl.rotation_degrees = 0
+	lbl_lvl.position = center + Vector2(290, -200)
+	lbl_lvl.rotation_degrees = 15 # Angled to match the bubble
 	add_child(lbl_lvl)
 	
 	var lbl_or = Label.new()
 	lbl_or.text = "OR"
 	lbl_or.set("theme_override_font_sizes/font_size", 42)
 	lbl_or.set("theme_override_colors/font_color", Color.BLACK)
+	lbl_or.set("theme_override_colors/font_shadow_color", Color(0,0,0,0.4))
+	lbl_or.set("theme_override_constants/shadow_offset_x", 2)
+	lbl_or.set("theme_override_constants/shadow_offset_y", 2)
 	lbl_or.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_or.size = Vector2(100, 60)
 	lbl_or.position = center + Vector2(-50, 240)
@@ -128,49 +149,58 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	lbl_name.set("theme_override_colors/font_color", Color.WHITE)
 	lbl_name.set("theme_override_colors/font_outline_color", Color.BLACK)
 	lbl_name.set("theme_override_constants/outline_size", 3)
+	lbl_name.set("theme_override_colors/font_shadow_color", Color(0,0,0,0.6))
+	lbl_name.set("theme_override_constants/shadow_offset_x", 2)
+	lbl_name.set("theme_override_constants/shadow_offset_y", 2)
 	lbl_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_name.size = Vector2(300, 40)
-	lbl_name.position = center + Vector2(-150, 110)
+	lbl_name.position = center + Vector2(-150, 130) # Moved lower
 	add_child(lbl_name)
 	
 	figure_icon.mouse_filter = Control.MOUSE_FILTER_PASS
 	figure_icon.tooltip_text = p_desc
 	
-	# Left button (HP) content: heart.png in center, Label on top
+	# Left button (HP)
 	var tex_hp = TextureRect.new()
 	tex_hp.texture = load("res://images/heart.png")
-	tex_hp.custom_minimum_size = Vector2(80, 80)
-	tex_hp.expand_mode = TextureRect.EXPAND_IGNORE_SIZE # FIX for giant heart
+	tex_hp.custom_minimum_size = Vector2(100, 100)
+	tex_hp.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	tex_hp.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	tex_hp.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	tex_hp.size = Vector2(80, 80)
-	tex_hp.position = Vector2(50, 50) # Centered in 180x180
+	tex_hp.size = Vector2(100, 100)
+	tex_hp.position = Vector2(67, 67) # Centered in 234x234
 	btn_left.add_child(tex_hp)
 	
 	var lbl_hp = Label.new()
 	lbl_hp.text = "1 HP"
-	lbl_hp.set("theme_override_font_sizes/font_size", 40)
+	lbl_hp.set("theme_override_font_sizes/font_size", 44)
 	lbl_hp.set("theme_override_colors/font_color", Color.BLACK)
+	lbl_hp.set("theme_override_colors/font_shadow_color", Color(0,0,0,0.3))
+	lbl_hp.set("theme_override_constants/shadow_offset_x", 2)
+	lbl_hp.set("theme_override_constants/shadow_offset_y", 2)
 	lbl_hp.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_hp.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	lbl_hp.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	btn_left.add_child(lbl_hp)
 	
-	# Right button (ATK) content: damage.png in center, Label on top
+	# Right button (ATK)
 	var tex_atk = TextureRect.new()
 	tex_atk.texture = load("res://images/damage.png")
-	tex_atk.custom_minimum_size = Vector2(80, 80)
-	tex_atk.expand_mode = TextureRect.EXPAND_IGNORE_SIZE # FIX for giant damage
+	tex_atk.custom_minimum_size = Vector2(100, 100)
+	tex_atk.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	tex_atk.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	tex_atk.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	tex_atk.size = Vector2(80, 80)
-	tex_atk.position = Vector2(50, 50) # Centered in 180x180
+	tex_atk.size = Vector2(100, 100)
+	tex_atk.position = Vector2(67, 67) # Centered in 234x234
 	btn_right.add_child(tex_atk)
 	
 	var lbl_atk = Label.new()
 	lbl_atk.text = "1 ATK"
-	lbl_atk.set("theme_override_font_sizes/font_size", 40)
+	lbl_atk.set("theme_override_font_sizes/font_size", 44)
 	lbl_atk.set("theme_override_colors/font_color", Color.BLACK)
+	lbl_atk.set("theme_override_colors/font_shadow_color", Color(0,0,0,0.3))
+	lbl_atk.set("theme_override_constants/shadow_offset_x", 2)
+	lbl_atk.set("theme_override_constants/shadow_offset_y", 2)
 	lbl_atk.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_atk.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	lbl_atk.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
