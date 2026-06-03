@@ -620,16 +620,16 @@ static func create_ui(main: Node):
 	title.set("theme_override_font_sizes/font_size", 100)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	main_shop_vbox.add_child(title)
-	main_shop_vbox.position.y -= 100 # Push up
+	main_shop_vbox.position.y += 50 # Push up
 	
 	main.shop_items_container = HBoxContainer.new()
 	main.shop_items_container.alignment = BoxContainer.ALIGNMENT_CENTER
-	main.shop_items_container.add_theme_constant_override("separation", 250)
+	main.shop_items_container.add_theme_constant_override("separation", 100)
 	main_shop_vbox.add_child(main.shop_items_container)
 	
 	var shop_bottom_vbox = VBoxContainer.new()
 	shop_bottom_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	shop_bottom_vbox.add_theme_constant_override("separation", 30)
+	shop_bottom_vbox.add_theme_constant_override("separation", 80)
 	main_shop_vbox.add_child(shop_bottom_vbox)
 	
 	var shop_hbox = HBoxContainer.new()
@@ -642,7 +642,7 @@ static func create_ui(main: Node):
 	shop_next_btn.set("theme_override_font_sizes/font_size", 32)
 	shop_next_btn.custom_minimum_size = Vector2(300, 80)
 	shop_next_btn.pressed.connect(main.inventory_manager.toggle_inventory)
-	shop_next_btn.position = Vector2(100, 150) # Left Top corner below pause
+	shop_next_btn.position = Vector2(300, 150) # Left Top corner below pause
 	main.shop_panel.add_child(shop_next_btn)
 	
 	var reroll_btn = Button.new()
@@ -658,7 +658,7 @@ static func create_ui(main: Node):
 			reroll_btn.text = "Rerolled"
 			main.generate_shop()
 	)
-	reroll_btn.position = Vector2(1520, 150) # Right Top symmetric
+	reroll_btn.position = Vector2(1320, 150) # Right Top symmetric
 	main.shop_panel.add_child(reroll_btn)
 	
 	var shop_start_btn = Button.new()

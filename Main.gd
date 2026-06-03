@@ -2145,7 +2145,7 @@ func generate_shop():
 		# Wrapper to move items UP over the shelf
 		var wrap = Control.new()
 		wrap.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		inner.position = Vector2(0, -60)
+		inner.position = Vector2(0, -20)
 		wrap.add_child(inner)
 		shelf_panel.add_child(wrap)
 		
@@ -2169,6 +2169,8 @@ func generate_shop():
 			var info = Label.new()
 			info.text = type_name + "\n$" + str(cost)
 			info.set("theme_override_colors/font_color", Color.WHITE)
+			info.set("theme_override_colors/font_outline_color", Color.BLACK)
+			info.set("theme_override_constants/outline_size", 6)
 			info.set("theme_override_font_sizes/font_size", 24)
 			info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			inner.add_child(info)
@@ -2197,6 +2199,8 @@ func generate_shop():
 			var info = Label.new()
 			info.text = it.replace("_", " ").capitalize() + "\n$" + str(cost)
 			info.set("theme_override_colors/font_color", Color.WHITE)
+			info.set("theme_override_colors/font_outline_color", Color.BLACK)
+			info.set("theme_override_constants/outline_size", 6)
 			info.set("theme_override_font_sizes/font_size", 24)
 			info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			inner.add_child(info)
