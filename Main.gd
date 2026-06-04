@@ -904,6 +904,7 @@ func can_move_or_attack(pos, is_player):
 	return p.is_player != is_player
 
 func get_valid_moves(pawn):
+	if pawn.get("current_cooldown") != null and pawn.current_cooldown > 0: return []
 	var type = pawn.piece_type
 	var is_hoof = pawn.artifacts.has("hoof")
 	var is_knight = type == PieceType.KNIGHT
@@ -1359,19 +1360,19 @@ func take_damage(piece, amt, attacker = null):
 	if piece == selected_piece:
 		update_info_panel(piece.grid_pos)
 		
-		if hp > 0 and piece.piece_type == PieceType.WOLF and is_instance_valid(attacker):
-			var away_dir = (piece.grid_pos - attacker.grid_pos).normalized()
-			if abs(away_dir.x) > abs(away_dir.y): away_dir = Vector2(sign(away_dir.x), 0)
-			else: away_dir = Vector2(0, sign(away_dir.y))
-			if away_dir == Vector2.ZERO: away_dir = Vector2(0, 1)
-			var jump_to = piece.grid_pos + away_dir
-			if is_inside(jump_to) and not board.has(jump_to):
-				board.erase(piece.grid_pos)
-				piece.grid_pos = jump_to
-				board[jump_to] = piece
-				var t = create_tween()
-				t.tween_property(piece, "position", jump_to * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.2)
-				vfx_manager.show_floating_text(jump_to, "RETREAT!", Color.GRAY)
+	if hp > 0 and piece.piece_type == PieceType.WOLF and is_instance_valid(attacker):
+		var away_dir = (piece.grid_pos - attacker.grid_pos).normalized()
+		if abs(away_dir.x) > abs(away_dir.y): away_dir = Vector2(sign(away_dir.x), 0)
+		else: away_dir = Vector2(0, sign(away_dir.y))
+		if away_dir == Vector2.ZERO: away_dir = Vector2(0, 1)
+		var jump_to = piece.grid_pos + away_dir
+		if is_inside(jump_to) and not board.has(jump_to):
+			board.erase(piece.grid_pos)
+			piece.grid_pos = jump_to
+			board[jump_to] = piece
+			var t = create_tween()
+			t.tween_property(piece, "position", jump_to * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.2)
+			vfx_manager.show_floating_text(jump_to, "RETREAT!", Color.GRAY)
 				
 	if hp <= 0:
 		if not is_instance_valid(piece):
@@ -1862,6 +1863,11 @@ func start_player_turn():
 	status_label.set("theme_override_colors/font_color", Color.WHITE)
 	tick_statuses(true)
 	check_win_condition()
+	for p in player_pawns:
+		if is_instance_valid(p) and p.get("current_cooldown") != null and p.current_cooldown > 0:
+			p.current_cooldown -= 1
+			if p.current_cooldown == 0 and p.piece_type == PieceType.FIGURECATCHER:
+				vfx_manager.show_floating_text(p.grid_pos, "READY!", Color.GREEN)
 
 func bot_turn():
 	tick_statuses(false)
@@ -2490,19 +2496,19 @@ func start_next_level(node_info):
 	
 	var ordinary_pool = [
 		{"type": PieceType.PAWN, "cost": 1},
-		{"type": PieceType.KNIGHT, "cost": 2},
-		{"type": PieceType.BISHOP, "cost": 2},
-		{"type": PieceType.ROOK, "cost": 2},
-		{"type": PieceType.QUEEN, "cost": 3}
+		{"type": PieceType.KNIGHT, "cost": 3},
+		{"type": PieceType.BISHOP, "cost": 3},
+		{"type": PieceType.ROOK, "cost": 3},
+		{"type": PieceType.QUEEN, "cost": 5}
 	]
 	
 	var unique_pool = [
 		{"type": PieceType.SPORE, "cost": 1},
-		{"type": PieceType.TICK, "cost": 2},
-		{"type": PieceType.FIGURECATCHER, "cost": 2},
-		{"type": PieceType.WOLF, "cost": 2},
-		{"type": PieceType.FUNGUS, "cost": 3},
-		{"type": PieceType.BEAR, "cost": 3}
+		{"type": PieceType.TICK, "cost": 3},
+		{"type": PieceType.FIGURECATCHER, "cost": 3},
+		{"type": PieceType.WOLF, "cost": 3},
+		{"type": PieceType.FUNGUS, "cost": 4},
+		{"type": PieceType.BEAR, "cost": 4}
 	]
 	
 	var spawned_bots = 0
@@ -2527,7 +2533,10 @@ func start_next_level(node_info):
 			# 10% ordinary, 90% unique
 			chosen_pool = avail_uniq if randf() < 0.9 else avail_ord
 			
-		var pick = chosen_pool[randi() % chosen_pool.size()]
+		chosen_pool.sort_custom(func(a, b): return a.cost > b.cost)
+		var max_avail_cost = chosen_pool[0].cost
+		var top_choices = chosen_pool.filter(func(x): return x.cost == max_avail_cost)
+		var pick = top_choices[randi() % top_choices.size()]
 		var utype = pick.type
 		if utype == PieceType.SPORE:
 			for i in range(unique_pool.size()-1, -1, -1):
