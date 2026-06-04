@@ -346,7 +346,8 @@ static func process_bot_turn(main: Node) -> bool:
 				
 	if best_bot and best_move:
 		main.perform_action(best_bot, best_move)
-		best_bot.current_cooldown = best_bot.cooldown
+		if best_bot.get("current_cooldown", 0) == 0:
+			best_bot.current_cooldown = best_bot.cooldown
 		moved = true
 
 	var spores = main.bot_pawns.filter(func(p): return is_instance_valid(p) and p.current_hp > 0 and p.piece_type == 22 and p != best_bot)

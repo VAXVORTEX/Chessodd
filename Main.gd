@@ -2225,8 +2225,11 @@ func generate_shop():
 				var shad = TextureRect.new()
 				shad.texture = tex
 				shad.modulate = Color(0, 0, 0, 0.5)
-				shad.position = Vector2(5, 5)
 				shad.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+				shad.offset_left = 15
+				shad.offset_top = 15
+				shad.offset_right = 15
+				shad.offset_bottom = 15
 				shad.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 				shad.show_behind_parent = true
 				icon.add_child(shad)
@@ -2234,10 +2237,10 @@ func generate_shop():
 			
 			var info = Label.new()
 			info.text = type_name + "\n$" + str(cost)
-			info.set("theme_override_colors/font_color", Color.WHITE)
-			info.set("theme_override_colors/font_outline_color", Color.BLACK)
-			info.set("theme_override_constants/outline_size", 6)
-			info.set("theme_override_font_sizes/font_size", 24)
+			info.add_theme_color_override("font_color", Color.WHITE)
+			info.add_theme_color_override("font_outline_color", Color.BLACK)
+			info.add_theme_constant_override("outline_size", 6)
+			info.add_theme_font_size_override("font_size", 24)
 			info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			inner.add_child(info)
 			
@@ -2273,8 +2276,11 @@ func generate_shop():
 				var shad = TextureRect.new()
 				shad.texture = it_tex
 				shad.modulate = Color(0, 0, 0, 0.5)
-				shad.position = Vector2(5, 5)
 				shad.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+				shad.offset_left = 15
+				shad.offset_top = 15
+				shad.offset_right = 15
+				shad.offset_bottom = 15
 				shad.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 				shad.show_behind_parent = true
 				icon.add_child(shad)
@@ -2282,10 +2288,10 @@ func generate_shop():
 			
 			var info = Label.new()
 			info.text = it.replace("_", " ").capitalize() + "\n$" + str(cost)
-			info.set("theme_override_colors/font_color", Color.WHITE)
-			info.set("theme_override_colors/font_outline_color", Color.BLACK)
-			info.set("theme_override_constants/outline_size", 6)
-			info.set("theme_override_font_sizes/font_size", 24)
+			info.add_theme_color_override("font_color", Color.WHITE)
+			info.add_theme_color_override("font_outline_color", Color.BLACK)
+			info.add_theme_constant_override("outline_size", 6)
+			info.add_theme_font_size_override("font_size", 24)
 			info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			inner.add_child(info)
 			

@@ -214,9 +214,11 @@ func update_inventory_screen():
 		var n = get_piece_name(t)
 		if type_counts[t] > 1: n += " " + str(type_indices[t])
 		lbl.text = n
-		lbl.set("theme_override_font_sizes/font_size", 20)
-		lbl.set("theme_override_colors/font_color", Color.BLACK)
+		lbl.add_theme_font_size_override("font_size", 20)
+		lbl.add_theme_color_override("font_color", Color.BLACK)
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
+		lbl.custom_minimum_size = Vector2(90, 0)
 		vbox.add_child(lbl)
 		
 		panel.add_child(vbox)
@@ -264,8 +266,11 @@ func update_inventory_selection():
 		var shad2 = TextureRect.new()
 		shad2.name = "Shadow"
 		shad2.modulate = Color(0, 0, 0, 0.5)
-		shad2.position = Vector2(8, 8)
 		shad2.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		shad2.offset_left = 12
+		shad2.offset_top = 12
+		shad2.offset_right = 12
+		shad2.offset_bottom = 12
 		shad2.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		shad2.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		shad2.show_behind_parent = true
