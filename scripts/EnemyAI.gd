@@ -349,4 +349,25 @@ static func process_bot_turn(main: Node) -> bool:
 		best_bot.current_cooldown = best_bot.cooldown
 		moved = true
 
+	var spores = main.bot_pawns.filter(func(p): return is_instance_valid(p) and p.current_hp > 0 and p.piece_type == 22 and p != best_bot)
+	if spores.size() > 0:
+		var spore = spores[randi() % spores.size()]
+		var s_moves = main.get_valid_moves(spore)
+		if s_moves.size() > 0:
+			var s_best_move = null
+			var s_best_score = -9999
+			for m in s_moves:
+				var score = randf() * 5.0
+				var target = main.board.get(m)
+				if target and target.is_player: score += 50
+				elif target and target.has_meta("is_obstacle") and target.piece_type == 5: score += 20
+				if m.y > spore.grid_pos.y: score += 5
+				if score > s_best_score:
+					s_best_score = score
+					s_best_move = m
+			if s_best_move:
+				var should_skip = (best_bot != null)
+				main.perform_action(spore, s_best_move, should_skip)
+				moved = true
+
 	return moved

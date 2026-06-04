@@ -21,6 +21,8 @@ static func spawn_piece(main: Node, x: int, y: int, is_player: bool, type: int =
 	var sf = min(main.CELL_SIZE_V.x * 0.8 / ts.x, main.CELL_SIZE_V.y * 0.8 / ts.y)
 	if type == main.PieceType.BOMB_BARREL:
 		sf = min(main.CELL_SIZE_V.x * 1.3 / ts.x, main.CELL_SIZE_V.y * 1.3 / ts.y)
+	elif type in [main.PieceType.BOSS_DEADKING, main.PieceType.BOSS_HEAD, main.PieceType.BOSS_BODY]:
+		sf = min(main.CELL_SIZE_V.x * 1.8 / ts.x, main.CELL_SIZE_V.y * 1.8 / ts.y)
 	p.scale = Vector2(sf, sf)
 	p.is_player = is_player
 	if not is_player and type in [0, 1, 2, 3, 6, 7]: # Only tint ordinary chess pieces
@@ -53,6 +55,8 @@ static func spawn_piece(main: Node, x: int, y: int, is_player: bool, type: int =
 	var obstacle = (data.get("is_obstacle", false) or type == main.PieceType.POOP)
 	if obstacle:
 		shadow.position = Vector2(4, 5)
+	elif type in [main.PieceType.BOSS_DEADKING, main.PieceType.BOSS_HEAD, main.PieceType.BOSS_BODY]:
+		shadow.position = Vector2(20, 25)
 	else:
 		shadow.position = Vector2(10, 15)
 	shadow.z_index = -1 # Draw behind the piece

@@ -1680,6 +1680,9 @@ func perform_action(piece, target_pos, skip_turn_change = false):
 		
 		if not is_instance_valid(target_piece) or target_piece.current_hp <= 0:
 			if is_instance_valid(piece) and piece.current_hp > 0:
+				if piece.piece_type == PieceType.FIGURECATCHER:
+					piece.current_cooldown = 3
+					vfx_manager.show_floating_text(piece.grid_pos, "FED! (CD 2)", Color.MAGENTA)
 				if piece.artifacts.has("deadking_head"):
 					piece.current_hp += 1
 					vfx_manager.show_floating_text(piece.grid_pos, "+1 HP", Color.GREEN)
@@ -2482,6 +2485,8 @@ func start_next_level(node_info):
 	var max_points = 5 + (node_info.floor - 1) * 2
 	if node_info.type == map_manager.NodeType.ELITE:
 		max_points += 6
+	if node_info.type == map_manager.NodeType.BOSS:
+		max_points = 0
 	
 	var ordinary_pool = [
 		{"type": PieceType.PAWN, "cost": 1},
