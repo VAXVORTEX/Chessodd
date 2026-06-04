@@ -2221,7 +2221,7 @@ func generate_shop():
 				if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
 					inventory_manager.show_item_info(PieceType.keys()[ft], btn.global_position + Vector2(20,20))
 			)
-						var btn_wrap = Control.new()
+			var btn_wrap = Control.new()
 			btn_wrap.custom_minimum_size = Vector2(250, 60)
 			btn_wrap.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 			var offset_y = -35 if is_shelf1 else -15
@@ -2269,7 +2269,7 @@ func generate_shop():
 				if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
 					inventory_manager.show_item_info(it, btn.global_position + Vector2(20,20))
 			)
-						var btn_wrap = Control.new()
+			var btn_wrap = Control.new()
 			btn_wrap.custom_minimum_size = Vector2(250, 60)
 			btn_wrap.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 			var offset_y = -35 if is_shelf1 else -15
