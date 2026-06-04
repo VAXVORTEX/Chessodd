@@ -48,7 +48,7 @@ func tick_statuses(is_player_turn):
 			p.burn_stacks -= 1
 			if p.burn_stacks < 0: p.burn_stacks = 0
 			
-		if p.poison_stacks > 0 and p.is_player != is_player_turn:
+		if p.poison_stacks > 0 and p.is_player == is_player_turn:
 			main.take_damage(p, p.poison_stacks, null)
 			main.vfx_manager.show_floating_text(p.grid_pos, "POISON -%d" % p.poison_stacks, Color.GREEN)
 			p.poison_stacks -= 1

@@ -1633,9 +1633,7 @@ func perform_action(piece, target_pos):
 				target_piece.poison_stacks += 1
 				target_piece.attack_damage = max(0, target_piece.attack_damage - 1)
 				vfx_manager.show_floating_text(target_pos, "POISON +1, ATK -1", Color.PURPLE)
-			if is_instance_valid(piece) and piece.piece_type == PieceType.FIGURECATCHER:
-				target_piece.bleed_stacks += 1
-				vfx_manager.show_floating_text(target_pos, "+1 BLEED", Color.DARK_RED)
+
 			if is_instance_valid(piece) and piece.piece_type == PieceType.BEAR:
 				var push_dir = (target_pos - g_pos).normalized()
 				push_dir = Vector2(round(push_dir.x), round(push_dir.y))
@@ -2071,7 +2069,7 @@ func check_win_condition():
 		
 	var real_bots_left = 0
 	for b in bot_pawns:
-		if is_instance_valid(b) and not b.has_meta("is_obstacle"):
+		if is_instance_valid(b) and (not b.has_meta("is_obstacle") or b.piece_type == PieceType.FUNGUS):
 			real_bots_left += 1
 		
 	if not king_alive or player_pawns.is_empty():
@@ -2503,6 +2501,10 @@ func start_next_level(node_info):
 			
 		var pick = chosen_pool[randi() % chosen_pool.size()]
 		var utype = pick.type
+		if utype == PieceType.SPORE:
+			for i in range(unique_pool.size()-1, -1, -1):
+				if unique_pool[i].type == PieceType.SPORE:
+					unique_pool.remove_at(i)
 		current_points += pick.cost
 		
 		var spot = empty_bot_spots.pop_back()

@@ -199,6 +199,7 @@ func update_inventory_screen():
 		shad1.modulate = Color(0, 0, 0, 0.5)
 		shad1.position = Vector2(3, 3)
 		shad1.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		shad1.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		shad1.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		shad1.show_behind_parent = true
 		tbtn.add_child(shad1)
@@ -265,6 +266,7 @@ func update_inventory_selection():
 		shad2.modulate = Color(0, 0, 0, 0.5)
 		shad2.position = Vector2(8, 8)
 		shad2.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		shad2.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		shad2.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		shad2.show_behind_parent = true
 		main.inv_piece_tex.add_child(shad2)
