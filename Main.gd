@@ -1359,6 +1359,20 @@ func take_damage(piece, amt, attacker = null):
 	if piece == selected_piece:
 		update_info_panel(piece.grid_pos)
 		
+		if hp > 0 and piece.piece_type == PieceType.WOLF and is_instance_valid(attacker):
+			var away_dir = (piece.grid_pos - attacker.grid_pos).normalized()
+			if abs(away_dir.x) > abs(away_dir.y): away_dir = Vector2(sign(away_dir.x), 0)
+			else: away_dir = Vector2(0, sign(away_dir.y))
+			if away_dir == Vector2.ZERO: away_dir = Vector2(0, 1)
+			var jump_to = piece.grid_pos + away_dir
+			if is_inside(jump_to) and not board.has(jump_to):
+				board.erase(piece.grid_pos)
+				piece.grid_pos = jump_to
+				board[jump_to] = piece
+				var t = create_tween()
+				t.tween_property(piece, "position", jump_to * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.2)
+				vfx_manager.show_floating_text(jump_to, "RETREAT!", Color.GRAY)
+				
 	if hp <= 0:
 		if not is_instance_valid(piece):
 			return
@@ -1553,7 +1567,7 @@ func trigger_game_over(msg):
 	status_label.set("theme_override_colors/font_color", Color.RED)
 	game_over_panel.show()
 
-func perform_action(piece, target_pos):
+func perform_action(piece, target_pos, skip_turn_change = false):
 	var g_pos = piece.grid_pos
 	var is_player = piece.is_player
 	var atk = piece.attack_damage
@@ -1565,7 +1579,7 @@ func perform_action(piece, target_pos):
 			vfx_manager.show_floating_text(target_pos, "SPLAT!", Color.GREEN)
 			take_damage(piece, 9999) # Die and trigger explosion
 			var tween = create_tween()
-			end_turn_with_tween(null, target_pos, tween, piece.is_player)
+			end_turn_with_tween(null, target_pos, tween, piece.is_player, skip_turn_change)
 			return
 			
 		if target_piece.piece_type == PieceType.CHECKER and target_piece.is_player == piece.is_player:
@@ -1573,7 +1587,7 @@ func perform_action(piece, target_pos):
 				vfx_manager.show_floating_text(piece.grid_pos, "SPLAT!", Color.AQUA)
 				take_damage(piece, 9999)
 				var tween = create_tween()
-				end_turn_with_tween(null, target_pos, tween, piece.is_player)
+				end_turn_with_tween(null, target_pos, tween, piece.is_player, skip_turn_change)
 				return
 			
 			var count = piece.get_meta("stacked_checker_count") if piece.has_meta("stacked_checker_count") else 0
@@ -1611,7 +1625,7 @@ func perform_action(piece, target_pos):
 			
 			var tween = create_tween()
 			tween.tween_property(piece, "position", target_pos * CELL_SIZE_V + (CELL_SIZE_V / 2.0), 0.3)
-			end_turn_with_tween(piece, target_pos, tween)
+			end_turn_with_tween(piece, target_pos, tween, null, skip_turn_change)
 			return
 			
 		var was_poop = target_piece.has_meta("is_obstacle") and target_piece.piece_type == PieceType.POOP
@@ -1620,7 +1634,7 @@ func perform_action(piece, target_pos):
 			vfx_manager.show_floating_text(piece.grid_pos, TranslationManager.translate("splat"), Color.BROWN)
 			take_damage(piece, 9999)
 			var tween = create_tween()
-			end_turn_with_tween(null, target_pos, tween, piece.is_player)
+			end_turn_with_tween(null, target_pos, tween, piece.is_player, skip_turn_change)
 			return
 			
 		take_damage(target_piece, atk, piece)
@@ -1638,7 +1652,16 @@ func perform_action(piece, target_pos):
 				var push_dir = (target_pos - g_pos).normalized()
 				push_dir = Vector2(round(push_dir.x), round(push_dir.y))
 				var push_to = target_pos + push_dir
-				if is_inside(push_to) and not board.has(push_to):
+				if not is_inside(push_to):
+					take_damage(target_piece, 1)
+					vfx_manager.show_floating_text(target_pos, "WALL SLAM! -1", Color.RED)
+				elif board.has(push_to):
+					var hit_piece = board[push_to]
+					take_damage(target_piece, 1)
+					take_damage(hit_piece, 1)
+					vfx_manager.show_floating_text(target_pos, "CRASH! -1", Color.RED)
+					vfx_manager.show_floating_text(push_to, "CRASH! -1", Color.RED)
+				else:
 					board.erase(target_pos)
 					target_piece.grid_pos = push_to
 					board[push_to] = target_piece
@@ -1728,7 +1751,7 @@ func perform_action(piece, target_pos):
 				overlay.queue_redraw()
 				check_nightmare_pawns_interaction(piece)
 			else:
-				end_turn_with_tween(piece, target_pos, tween)
+				end_turn_with_tween(piece, target_pos, tween, null, skip_turn_change)
 		else:
 			end_turn_with_tween(null, target_pos, tween, is_player)
 			
@@ -1749,7 +1772,7 @@ func perform_action(piece, target_pos):
 			update_ui()
 			check_nightmare_pawns_interaction(piece)
 		else:
-			end_turn_with_tween(piece, target_pos, tween)
+			end_turn_with_tween(piece, target_pos, tween, null, skip_turn_change)
 
 
 

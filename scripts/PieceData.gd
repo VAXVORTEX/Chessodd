@@ -195,11 +195,11 @@ static var registry = {
 	20: {
 		"title": "Bear",
 		"desc": "ALWAYS jumps exactly 2 cells orthogonally.",
-		"hp": 4, "atk": 2, "cost": 5, "is_obstacle": false, "is_boss": false,
-		"hp_player": 4, "atk_player": 2, "target_val": 50,
+		"hp": 5, "atk": 1, "cost": 5, "is_obstacle": false, "is_boss": false,
+		"hp_player": 5, "atk_player": 1, "target_val": 50,
 		"tex_player": "res://images/bear.png",
 		"tex_bot": "res://images/bear.png",
-		"movement_func": Callable(MovementRules, "get_bear_moves")
+		"movement_func": Callable(MovementRules, "get_checker_moves")
 	},
 	21: {
 		"title": "Fungus",
@@ -222,8 +222,8 @@ static var registry = {
 	23: {
 		"title": "Wolf",
 		"desc": "Moves in an 'L' shape.",
-		"hp": 2, "atk": 1, "cost": 4, "is_obstacle": false, "is_boss": false,
-		"hp_player": 2, "atk_player": 1, "target_val": 30,
+		"hp": 3, "atk": 2, "cost": 4, "is_obstacle": false, "is_boss": false,
+		"hp_player": 3, "atk_player": 2, "target_val": 30,
 		"tex_player": "res://images/wolf.png",
 		"tex_bot": "res://images/wolf.png",
 		"movement_func": Callable(MovementRules, "get_knight_moves")
