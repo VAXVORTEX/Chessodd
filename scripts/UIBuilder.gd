@@ -610,7 +610,7 @@ static func create_ui(main: Node):
 	main_shop_vbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	main_shop_vbox.grow_vertical = Control.GROW_DIRECTION_BOTH
 	main_shop_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	main_shop_vbox.add_theme_constant_override("separation", 80)
+	main_shop_vbox.add_theme_constant_override("separation", 40)
 	main.shop_panel.add_child(main_shop_vbox)
 	
 	var title = Label.new()
@@ -620,7 +620,7 @@ static func create_ui(main: Node):
 	title.set("theme_override_font_sizes/font_size", 100)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	main_shop_vbox.add_child(title)
-	main_shop_vbox.position.y += 50 # Push up
+	main_shop_vbox.position.y -= 20
 	
 	main.shop_items_container = HBoxContainer.new()
 	main.shop_items_container.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -629,7 +629,7 @@ static func create_ui(main: Node):
 	
 	var shop_bottom_vbox = VBoxContainer.new()
 	shop_bottom_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	shop_bottom_vbox.add_theme_constant_override("separation", 80)
+	shop_bottom_vbox.add_theme_constant_override("separation", 30)
 	main_shop_vbox.add_child(shop_bottom_vbox)
 	
 	var shop_hbox = HBoxContainer.new()

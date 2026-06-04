@@ -193,6 +193,15 @@ func update_inventory_screen():
 		tbtn.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 		tbtn.custom_minimum_size = Vector2(100, 100)
 		tbtn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		
+		var shad1 = TextureRect.new()
+		shad1.texture = p.texture
+		shad1.modulate = Color(0, 0, 0, 0.5)
+		shad1.position = Vector2(3, 3)
+		shad1.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		shad1.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		shad1.show_behind_parent = true
+		tbtn.add_child(shad1)
 		var p_idx = i
 		tbtn.pressed.connect(func():
 			main.current_view_index = p_idx
@@ -250,6 +259,16 @@ func update_inventory_selection():
 	if main.player_pawns.is_empty(): return
 	var p = main.player_pawns[main.current_view_index]
 	main.inv_piece_tex.texture = p.texture
+	if not main.inv_piece_tex.has_node("Shadow"):
+		var shad2 = TextureRect.new()
+		shad2.name = "Shadow"
+		shad2.modulate = Color(0, 0, 0, 0.5)
+		shad2.position = Vector2(8, 8)
+		shad2.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		shad2.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		shad2.show_behind_parent = true
+		main.inv_piece_tex.add_child(shad2)
+	main.inv_piece_tex.get_node("Shadow").texture = p.texture
 	
 	var type_counts = {}
 	for cp in main.player_pawns: type_counts[cp.piece_type] = type_counts.get(cp.piece_type, 0) + 1

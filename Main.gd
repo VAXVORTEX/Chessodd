@@ -2169,7 +2169,8 @@ func generate_shop():
 		var wrap = Control.new()
 		wrap.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		inner.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-		inner.position.y = -15
+		var is_shelf1 = (s["icon"] == "shelf1_shop.png")
+		inner.position.y = -60 if is_shelf1 else -30
 		inner.grow_horizontal = Control.GROW_DIRECTION_BOTH
 		wrap.add_child(inner)
 		shelf_panel.add_child(wrap)
@@ -2189,6 +2190,16 @@ func generate_shop():
 			icon.custom_minimum_size = Vector2(192, 192)
 			icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 			icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			
+			if tex:
+				var shad = TextureRect.new()
+				shad.texture = tex
+				shad.modulate = Color(0, 0, 0, 0.5)
+				shad.position = Vector2(5, 5)
+				shad.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+				shad.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+				shad.show_behind_parent = true
+				icon.add_child(shad)
 			inner.add_child(icon)
 			
 			var info = Label.new()
@@ -2210,16 +2221,33 @@ func generate_shop():
 				if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
 					inventory_manager.show_item_info(PieceType.keys()[ft], btn.global_position + Vector2(20,20))
 			)
-			vbox.add_child(btn)
+						var btn_wrap = Control.new()
+			btn_wrap.custom_minimum_size = Vector2(250, 60)
+			btn_wrap.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			var offset_y = -35 if is_shelf1 else -15
+			btn.position = Vector2(0, offset_y)
+			btn_wrap.add_child(btn)
+			vbox.add_child(btn_wrap)
 		else:
 			var it = item_pool[randi() % item_pool.size()]
 			var cost = s.get("cost", s.get("cost_item", 10))
 			
 			var icon = TextureRect.new()
-			icon.texture = inventory_manager.get_item_texture(it)
+			var it_tex = inventory_manager.get_item_texture(it)
+			icon.texture = it_tex
 			icon.custom_minimum_size = Vector2(192, 192)
 			icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 			icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			
+			if it_tex:
+				var shad = TextureRect.new()
+				shad.texture = it_tex
+				shad.modulate = Color(0, 0, 0, 0.5)
+				shad.position = Vector2(5, 5)
+				shad.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+				shad.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+				shad.show_behind_parent = true
+				icon.add_child(shad)
 			inner.add_child(icon)
 			
 			var info = Label.new()
@@ -2241,7 +2269,13 @@ func generate_shop():
 				if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
 					inventory_manager.show_item_info(it, btn.global_position + Vector2(20,20))
 			)
-			vbox.add_child(btn)
+						var btn_wrap = Control.new()
+			btn_wrap.custom_minimum_size = Vector2(250, 60)
+			btn_wrap.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			var offset_y = -35 if is_shelf1 else -15
+			btn.position = Vector2(0, offset_y)
+			btn_wrap.add_child(btn)
+			vbox.add_child(btn_wrap)
 
 func buy_item(type, cost, btn, is_item):
 	if coins >= cost:

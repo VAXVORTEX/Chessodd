@@ -117,10 +117,10 @@ func setup(piece_type: int, is_player: bool, level_num: int):
 	btn_right.add_child(r_shad)
 	
 	btn_left.size = Vector2(300, 300)
-	btn_left.position = center + Vector2(-270, 140)
+	btn_left.position = center + Vector2(-290, 140)
 	
 	btn_right.size = Vector2(300, 300)
-	btn_right.position = center + Vector2(50, 140)
+	btn_right.position = center + Vector2(130, 140)
 	
 	var lbl_title = Label.new()
 	lbl_title.text = "Level up"
