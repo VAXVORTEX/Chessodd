@@ -1,6 +1,7 @@
 class_name EnemySpawner
 
 static func spawn_piece(main: Node, x: int, y: int, is_player: bool, type: int = 0) -> Node:
+	main.register_seen_piece(type)
 	var data = PieceData.registry.get(type, PieceData.registry[main.PieceType.PAWN])
 	var tex = PieceData.get_piece_texture(type, is_player)
 	

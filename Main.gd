@@ -155,6 +155,18 @@ var selected_item_data = null
 var game_over_panel: ColorRect
 var inv_level_lbl: Label
 var inv_time_lbl: Label
+var meta_data = {"seen_pieces": [], "seen_items": []}
+var bestiary_panel: BestiaryMenu
+
+func register_seen_piece(type_id: int):
+	if typeof(type_id) == TYPE_INT and not meta_data["seen_pieces"].has(type_id):
+		meta_data["seen_pieces"].append(type_id)
+		SaveManager.save_meta(meta_data)
+
+func register_seen_item(item_id: String):
+	if item_id != "" and not meta_data["seen_items"].has(item_id):
+		meta_data["seen_items"].append(item_id)
+		SaveManager.save_meta(meta_data)
 
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
@@ -224,6 +236,7 @@ func _ready():
 	get_window().content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
 	get_window().content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
 	add_to_group("main")
+	meta_data = SaveManager.load_meta()
 	tex_pawn_player = load("res://images/pawn.png")
 	tex_pawn_bot = load("res://images/pawn.png")
 	tex_knight_player = load("res://images/knight_player.svg")
@@ -2212,6 +2225,7 @@ func generate_shop():
 		
 		if is_figure:
 			var ft = figure_pool[randi() % figure_pool.size()]
+			register_seen_piece(ft)
 			var cost = s.get("cost", s.get("cost_figure", 8))
 			var data = PieceData.registry.get(ft, PieceData.registry[PieceType.PAWN])
 			var type_name = data.get("title", "Unknown")
@@ -2266,6 +2280,7 @@ func generate_shop():
 			vbox.add_child(btn_wrap)
 		else:
 			var it = item_pool[randi() % item_pool.size()]
+			register_seen_item(it)
 			var cost = s.get("cost", s.get("cost_item", 10))
 			
 			var icon = TextureRect.new()
@@ -2866,6 +2881,8 @@ func start_map_node(node):
 			var rand_fig = figure_pool[randi() % figure_pool.size()]
 			var rand_item = item_pool[randi() % item_pool.size()]
 			
+			register_seen_piece(rand_fig)
+			register_seen_item(rand_item)
 			unassigned_items.append(rand_item)
 			
 			var empty_player_spots = []

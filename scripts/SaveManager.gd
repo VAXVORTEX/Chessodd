@@ -70,3 +70,23 @@ static func delete_game(slot_id: int):
 	var path = save_dir + "/save_" + str(slot_id) + ".json"
 	if FileAccess.file_exists(path):
 		DirAccess.remove_absolute(path)
+static func save_meta(data: Dictionary):
+	init_system()
+	var file = FileAccess.open(save_dir + "/meta_save.json", FileAccess.WRITE)
+	if file:
+		file.store_string(JSON.stringify(data, "\t"))
+
+static func load_meta() -> Dictionary:
+	var path = save_dir + "/meta_save.json"
+	if not FileAccess.file_exists(path):
+		return {"seen_pieces": [], "seen_items": []}
+	var file = FileAccess.open(path, FileAccess.READ)
+	if file:
+		var json = JSON.new()
+		var err = json.parse(file.get_as_text())
+		if err == OK:
+			var data = json.get_data()
+			if not data.has("seen_pieces"): data["seen_pieces"] = []
+			if not data.has("seen_items"): data["seen_items"] = []
+			return data
+	return {"seen_pieces": [], "seen_items": []}

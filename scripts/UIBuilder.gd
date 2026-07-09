@@ -696,6 +696,14 @@ static func create_ui(main: Node):
 	btn_play.custom_minimum_size = Vector2(400, 100)
 	btn_play.pressed.connect(func(): main.open_save_slots())
 	mm_vbox.add_child(btn_play)
+	
+	var btn_bestiary = Button.new()
+	btn_bestiary.text = "Bestiary"
+	btn_bestiary.add_to_group("translateable")
+	btn_bestiary.set("theme_override_font_sizes/font_size", 50)
+	btn_bestiary.custom_minimum_size = Vector2(400, 100)
+	btn_bestiary.pressed.connect(func(): main.bestiary_panel.show())
+	mm_vbox.add_child(btn_bestiary)
 
 	var btn_mm_settings = Button.new()
 	btn_mm_settings.text = "Settings"
@@ -748,6 +756,10 @@ static func create_ui(main: Node):
 	# --- SETTINGS UI ---
 	main.settings_panel = SettingsMenu.new(main)
 	main.ui_layer.add_child(main.settings_panel)
+	
+	# --- BESTIARY UI ---
+	main.bestiary_panel = BestiaryMenu.new(main)
+	main.ui_layer.add_child(main.bestiary_panel)
 	
 
 	
