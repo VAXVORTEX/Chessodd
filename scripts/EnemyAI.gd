@@ -346,7 +346,7 @@ static func process_bot_turn(main: Node) -> bool:
 				
 	if best_bot and best_move:
 		main.perform_action(best_bot, best_move)
-		if best_bot.get("current_cooldown", 0) == 0:
+		if best_bot.current_cooldown == 0:
 			best_bot.current_cooldown = best_bot.cooldown
 		moved = true
 
