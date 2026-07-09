@@ -1567,6 +1567,9 @@ func trigger_game_over(msg):
 	status_label.text = msg
 	status_label.set("theme_override_colors/font_color", Color.RED)
 	game_over_panel.show()
+	
+	if FileAccess.file_exists("user://save_game.dat"):
+		DirAccess.remove_absolute("user://save_game.dat")
 
 func perform_action(piece, target_pos, skip_turn_change = false):
 	var g_pos = piece.grid_pos
