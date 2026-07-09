@@ -289,29 +289,25 @@ func update_inventory_selection():
 
 	
 	var desc = ""
-	match p.piece_type:
-		main.PieceType.PAWN: desc = "Moves 1 step forward. Attacks diagonally forward."
-		main.PieceType.KNIGHT: desc = "Moves in an 'L' shape. Can jump over other pieces."
-		main.PieceType.BISHOP: desc = "Moves diagonally any number of spaces."
-		main.PieceType.ROOK: desc = "Moves horizontally or vertically any number of spaces."
-		main.PieceType.QUEEN: desc = "Moves in any direction any number of spaces."
-		main.PieceType.KING: desc = "Moves 1 step in any direction. If King dies, you lose."
-		main.PieceType.SPIKED_PAWN: desc = "Melee attackers take 1 damage."
-		main.PieceType.TELEPAWN: desc = "Moves 1 step horizontally and vertically. Attacks diagonally forward. Teleports randomly after attacking."
+	if PieceData.registry.has(p.piece_type):
+		desc = PieceData.registry[p.piece_type].get("desc", "")
 	main.inv_piece_desc.text = desc
 	
 	main.inv_piece_stats.text = "%d HP | ATK: %d" % [p.current_hp, p.attack_damage]
 	
 	if main.inv_bench_btn:
-		var is_benched = p.get_meta("is_benched", false)
+		var is_benched = p.get_meta("is_benched") if p.has_meta("is_benched") else false
 		
 		# Disconnect old signals
 		if main.inv_bench_btn.pressed.get_connections().size() > 0:
 			for conn in main.inv_bench_btn.pressed.get_connections():
 				main.inv_bench_btn.pressed.disconnect(conn.callable)
 				
-		if is_benched:
-			main.inv_bench_btn.text = "Unselected"
+		if p.piece_type == main.PieceType.KING:
+			main.inv_bench_btn.text = "Cannot Bench"
+			main.inv_bench_btn.modulate = Color(0.5, 0.5, 0.5)
+		elif is_benched:
+			main.inv_bench_btn.text = "Benched"
 			main.inv_bench_btn.modulate = Color(1.0, 0.3, 0.3)
 		else:
 			main.inv_bench_btn.text = "Selected"
@@ -319,12 +315,12 @@ func update_inventory_selection():
 			
 		main.inv_bench_btn.pressed.connect(func():
 			if p.piece_type == main.PieceType.KING: return
-			var currently_benched = p.get_meta("is_benched")
+			var currently_benched = p.get_meta("is_benched") if p.has_meta("is_benched") else false
 			
 			if currently_benched:
 				var unbenched_count = 0
 				for cp in main.player_pawns:
-					if not cp.get_meta("is_benched"): unbenched_count += 1
+					if not (cp.get_meta("is_benched") if cp.has_meta("is_benched") else false): unbenched_count += 1
 				if unbenched_count >= 15:
 					return # Cannot unbench more!
 					

@@ -18,14 +18,14 @@ func _ready():
 	mouse_entered.connect(func():
 		var m = get_tree().get_first_node_in_group("main")
 		if m and item_id != "":
-			if m.has_method("show_custom_tooltip"):
-				m.show_custom_tooltip(ItemManager.get_item_description(item_id))
+			if m.inventory_manager.has_method("show_custom_tooltip"):
+				m.inventory_manager.show_custom_tooltip(ItemManager.get_item_description(item_id))
 	)
 	
 	mouse_exited.connect(func():
 		var m2 = get_tree().get_first_node_in_group("main")
-		if m2 and m2.has_method("hide_custom_tooltip"):
-			m2.hide_custom_tooltip()
+		if m2 and m2.inventory_manager.has_method("hide_custom_tooltip"):
+			m2.inventory_manager.hide_custom_tooltip()
 	)
 	
 	var m3 = get_tree().get_first_node_in_group("main")
